@@ -15,39 +15,37 @@ document.addEventListener("DOMContentLoaded", function () {
   const imageModal = document.getElementById("imageModal");
   const modalImage = document.getElementById("modalImage");
   const closeImageModal = document.getElementById("closeImageModal");
+  const imageDescription = document.getElementById("imageDescription");
 
-  // 모달 열기: 업로드 버튼 클릭 시 업로드 모달 표시
+  let offset = 0;
+  const limit = 10;
+
   uploadBtn.addEventListener("click", function () {
     uploadModal.style.display = "flex";
   });
 
-  // 모달 닫기: X 버튼 클릭 시 모달 숨기기
   closeModal.addEventListener("click", function () {
     uploadModal.style.display = "none";
   });
 
-  // 파일 업로드 및 갤러리에 추가
   submitBtn.addEventListener("click", async function () {
     const password = document.getElementById("password").value;
     const fileInput = document.getElementById("fileInput");
+    const description = document.getElementById("description").value.trim();
 
-    // 비밀번호 확인
     if (password !== "firmament") {
       alert("비밀번호가 틀렸습니다!");
       return;
     }
 
-    // 파일 선택 여부 확인
     if (fileInput.files.length === 0) {
       alert("사진을 선택해주세요!");
       return;
     }
 
     const file = fileInput.files[0];
-    // 파일 경로 생성: uploads 폴더 아래에 고유한 파일명 생성
     const filePath = `uploads/${Date.now()}_${file.name}`;
 
-    // Supabase Storage에 파일 업로드 (버킷 이름은 'images'로 가정)
     const { data, error } = await supabaseClient.storage
       .from("images")
       .upload(filePath, file);
@@ -57,7 +55,6 @@ document.addEventListener("DOMContentLoaded", function () {
       return;
     }
 
-    // 업로드된 파일의 공개 URL 가져오기
     const { data: urlData, error: urlError } = supabaseClient.storage
       .from("images")
       .getPublicUrl(filePath);
@@ -69,56 +66,80 @@ document.addEventListener("DOMContentLoaded", function () {
       return;
     }
 
-    // 갤러리에 이미지 추가 (새로운 이미지를 첫 번째로 추가)
+    // Supabase 테이블에 사진 URL과 설명 저장
+    const { error: insertError } = await supabaseClient
+      .from("photos")
+      .insert([{ url: urlData.publicUrl, description }]);
+
+    if (insertError) {
+      alert(
+        "사진 정보를 저장하는 중 오류가 발생했습니다: " + insertError.message
+      );
+      return;
+    }
+
     const img = document.createElement("img");
     img.src = urlData.publicUrl;
-
-    // 새 이미지를 맨 위에 추가하기 위해 firstChild 앞에 삽입
+    img.loading = "lazy";
+    img.setAttribute("data-description", description);
     gallery.insertBefore(img, gallery.firstChild);
 
-    // 업로드 후 모달 닫기
     uploadModal.style.display = "none";
   });
 
-  // 갤러리 내의 이미지 클릭 시 확대 모달 열기
   gallery.addEventListener("click", function (e) {
     if (e.target.tagName === "IMG") {
       modalImage.src = e.target.src;
+      imageDescription.textContent =
+        e.target.getAttribute("data-description") || "설명이 없습니다.";
       imageModal.style.display = "flex";
     }
   });
 
-  // 확대 모달 닫기: X 버튼 클릭
   closeImageModal.addEventListener("click", function () {
     imageModal.style.display = "none";
   });
 
-  // 모달 바깥 클릭 시 확대 모달 닫기
   imageModal.addEventListener("click", function (e) {
     if (e.target === imageModal) {
       imageModal.style.display = "none";
     }
   });
 
-  // 페이지 로드시 기존 업로드된 이미지들을 갤러리에 불러오기
   async function loadGallery() {
     const { data, error } = await supabaseClient
-      .from("photos") // 'photos' 테이블에서 사진 목록 가져오기
+      .from("photos")
       .select("*")
-      .order("created_at", { ascending: false }); // created_at 기준으로 내림차순 정렬
+      .order("created_at", { ascending: false })
+      .range(offset, offset + limit - 1);
 
     if (error) {
       console.error("갤러리 로드 오류:", error.message);
       return;
     }
 
-    // 갤러리에 이미지를 표시
     data.forEach((item) => {
       const img = document.createElement("img");
-      img.src = item.url; // 업로드된 사진 URL
+      img.src = item.url;
+      img.loading = "lazy";
+      img.setAttribute(
+        "data-description",
+        item.description || "설명이 없습니다."
+      );
       gallery.appendChild(img);
     });
+
+    offset += limit;
   }
 
   loadGallery();
+
+  window.addEventListener("scroll", function () {
+    if (
+      window.innerHeight + window.scrollY >=
+      document.documentElement.scrollHeight - 200
+    ) {
+      loadGallery();
+    }
+  });
 });

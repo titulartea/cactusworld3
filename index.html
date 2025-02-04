@@ -26,16 +26,25 @@
           placeholder="비밀번호로 막혀있다 이말이야"
         />
         <input type="file" id="fileInput" />
+        <textarea
+          id="description"
+          placeholder="사진 소개를 입력하세요"
+        ></textarea>
         <button id="submitBtn">눌러보던가</button>
       </div>
     </div>
+
     <!-- 사진 클릭 시 확대 모달 -->
     <div id="imageModal" class="modal">
       <div class="modal-content">
         <span class="close" id="closeImageModal">&times;</span>
-        <img id="modalImage" src="" alt="확대된 이미지" />
+        <div id="확대된 이미지">
+          <img id="modalImage" src="" alt="확대된 이미지" />
+          <p id="imageDescription"></p>
+        </div>
       </div>
     </div>
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 
     <script src="script.js"></script>
