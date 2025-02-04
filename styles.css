@@ -127,3 +127,22 @@ img:hover {
   margin-top: 30px;
   font-size: 16px;
 }
+/* 확대 이미지 모달 */
+#imageModal .modal-content {
+  width: auto;
+  max-width: 90%;
+  max-height: 90%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.8);
+  padding: 10px;
+}
+
+#modalImage {
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 80vh;
+  border-radius: 8px;
+}
