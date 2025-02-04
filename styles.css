@@ -146,3 +146,17 @@ img:hover {
   max-height: 80vh;
   border-radius: 8px;
 }
+#loadMoreBtn {
+  margin: 20px auto;
+  padding: 10px 20px;
+  background: #3498db;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.3s;
+  display: block;
+}
+#loadMoreBtn:hover {
+  background: #2980b9;
+}

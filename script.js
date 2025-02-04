@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", function () {
-  // Supabase 프로젝트 URL과 키 (실제 값으로 교체)
+  // Supabase 설정
   const SUPABASE_URL = "https://lkddstkbnxapncvdeynf.supabase.co";
   const SUPABASE_KEY =
     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxrZGRzdGtibnhhcG5jdmRleW5mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzg2NTkwMDYsImV4cCI6MjA1NDIzNTAwNn0.dFrdDQ-E_23MBe0YQwzNvHWsoShpqJwn7l26CdcJ1xk";
@@ -16,9 +16,26 @@ document.addEventListener("DOMContentLoaded", function () {
   const modalImage = document.getElementById("modalImage");
   const closeImageModal = document.getElementById("closeImageModal");
   const imageDescription = document.getElementById("imageDescription");
+  const loadMoreBtn = document.createElement("button");
 
   let offset = 0;
-  const limit = 10;
+  const limit = 20;
+
+  // "더 보기" 버튼 생성 및 스타일 설정
+  loadMoreBtn.id = "loadMoreBtn";
+  loadMoreBtn.textContent = "더 보기";
+  loadMoreBtn.style.display = "none";
+  loadMoreBtn.style.margin = "20px auto";
+  loadMoreBtn.style.padding = "10px 20px";
+  loadMoreBtn.style.background = "#3498db";
+  loadMoreBtn.style.color = "white";
+  loadMoreBtn.style.border = "none";
+  loadMoreBtn.style.borderRadius = "8px";
+  loadMoreBtn.style.cursor = "pointer";
+  loadMoreBtn.style.transition = "0.3s";
+  loadMoreBtn.style.display = "block";
+
+  document.body.appendChild(loadMoreBtn);
 
   uploadBtn.addEventListener("click", function () {
     uploadModal.style.display = "flex";
@@ -80,7 +97,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const img = document.createElement("img");
     img.src = urlData.publicUrl;
-    img.loading = "lazy";
     img.setAttribute("data-description", description);
     gallery.insertBefore(img, gallery.firstChild);
 
@@ -121,7 +137,6 @@ document.addEventListener("DOMContentLoaded", function () {
     data.forEach((item) => {
       const img = document.createElement("img");
       img.src = item.url;
-      img.loading = "lazy";
       img.setAttribute(
         "data-description",
         item.description || "설명이 없습니다."
@@ -130,16 +145,16 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     offset += limit;
+
+    // 더 이상 불러올 데이터가 없으면 버튼 숨김
+    if (data.length < limit) {
+      loadMoreBtn.style.display = "none";
+    } else {
+      loadMoreBtn.style.display = "block";
+    }
   }
 
-  loadGallery();
+  loadMoreBtn.addEventListener("click", loadGallery);
 
-  window.addEventListener("scroll", function () {
-    if (
-      window.innerHeight + window.scrollY >=
-      document.documentElement.scrollHeight - 200
-    ) {
-      loadGallery();
-    }
-  });
+  loadGallery(); // 첫 번째 20개 사진 로드
 });
