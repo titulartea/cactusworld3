@@ -24,14 +24,13 @@ header {
 
 /* 각 셀은 전체 너비에 맞춰 정사각형(aspect-ratio 1:1)을 유지 */
 .gallery-item {
-  padding: 5%;
   width: 100%;
   aspect-ratio: 1/1;
   background-color: rgba(
     0,
     0,
     0,
-    0.2
+    0.3
   ); /* 셀 배경 (원하는 색상으로 조정 가능) */
   border-radius: 8px;
   overflow: hidden;
@@ -102,7 +101,7 @@ header {
   max-width: 100%;
   max-height: 80vh;
   border-radius: 8px;
-  transition: opacity 0.3s ease;
+  transition: opacity 0.2s ease;
 }
 
 #imageDescription {
@@ -173,7 +172,7 @@ header {
   user-select: none;
   z-index: 20;
   padding: 10px;
-  background: rgba(0, 0, 0, 0.3);
+
   border-radius: 50%;
 }
 
