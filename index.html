@@ -9,44 +9,45 @@
   <body>
     <header>
       <h1>CACTUS WORLD</h1>
-
       <button id="uploadBtn">upload</button>
     </header>
 
+    <!-- 갤러리 (각 사진을 감싸는 셀을 adaptive하게 구성) -->
     <div id="gallery"></div>
+    <button id="loadMoreBtn" style="display: none">더 보기</button>
 
     <!-- 모달 (사진 업로드 창) -->
     <div id="uploadModal" class="modal">
-      <div class="modal-content">
+      <div class="modal-content upload-modal">
         <span class="close">&times;</span>
         <h2>여긴 내 사이트니까 나만 사진을 올릴 수 있어요</h2>
         <input
           type="password"
           id="password"
-          placeholder="비밀번호로 막혀있다 이말이야"
+          placeholder="비밀번호를 입력하세요"
         />
         <input type="file" id="fileInput" />
         <textarea
           id="description"
           placeholder="사진 소개를 입력하세요"
         ></textarea>
-        <button id="submitBtn">눌러보던가</button>
+        <button id="submitBtn">업로드</button>
       </div>
     </div>
 
     <!-- 사진 클릭 시 확대 모달 -->
     <div id="imageModal" class="modal">
-      <div class="modal-content">
+      <div class="modal-content image-modal">
         <span class="close" id="closeImageModal">&times;</span>
-        <div id="확대된 이미지">
-          <img id="modalImage" src="" alt="확대된 이미지" />
-          <p id="imageDescription"></p>
-        </div>
+        <img id="modalImage" src="" alt="확대된 이미지" />
+        <p id="imageDescription"></p>
       </div>
+      <!-- 화면 좌우에 고정된 화살표 버튼 -->
+      <div class="arrow left" id="prevBtn">❮</div>
+      <div class="arrow right" id="nextBtn">❯</div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-
     <script src="script.js"></script>
   </body>
 </html>

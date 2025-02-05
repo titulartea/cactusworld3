@@ -9,33 +9,22 @@ document.addEventListener("DOMContentLoaded", function () {
 
   const uploadBtn = document.getElementById("uploadBtn");
   const uploadModal = document.getElementById("uploadModal");
-  const closeModal = document.querySelector(".close");
+  const closeModal = document.querySelector("#uploadModal .close");
   const submitBtn = document.getElementById("submitBtn");
   const gallery = document.getElementById("gallery");
   const imageModal = document.getElementById("imageModal");
   const modalImage = document.getElementById("modalImage");
   const closeImageModal = document.getElementById("closeImageModal");
   const imageDescription = document.getElementById("imageDescription");
-  const loadMoreBtn = document.createElement("button");
+  const loadMoreBtn = document.getElementById("loadMoreBtn");
+
+  // 좌우 고정 화살표 버튼
+  const prevBtn = document.getElementById("prevBtn");
+  const nextBtn = document.getElementById("nextBtn");
 
   let offset = 0;
   const limit = 20;
-
-  // "더 보기" 버튼 생성 및 스타일 설정
-  loadMoreBtn.id = "loadMoreBtn";
-  loadMoreBtn.textContent = "더 보기";
-  loadMoreBtn.style.display = "none";
-  loadMoreBtn.style.margin = "20px auto";
-  loadMoreBtn.style.padding = "10px 20px";
-  loadMoreBtn.style.background = "#3498db";
-  loadMoreBtn.style.color = "white";
-  loadMoreBtn.style.border = "none";
-  loadMoreBtn.style.borderRadius = "8px";
-  loadMoreBtn.style.cursor = "pointer";
-  loadMoreBtn.style.transition = "0.3s";
-  loadMoreBtn.style.display = "block";
-
-  document.body.appendChild(loadMoreBtn);
+  let currentIndex = 0; // 모달에서 현재 선택된 이미지 인덱스
 
   uploadBtn.addEventListener("click", function () {
     uploadModal.style.display = "flex";
@@ -95,23 +84,31 @@ document.addEventListener("DOMContentLoaded", function () {
       return;
     }
 
+    // 이미지 엘리먼트를 생성하고 gallery-item 컨테이너에 넣기
+    const galleryItem = document.createElement("div");
+    galleryItem.className = "gallery-item";
     const img = document.createElement("img");
     img.src = urlData.publicUrl;
     img.setAttribute("data-description", description);
-    gallery.insertBefore(img, gallery.firstChild);
+    galleryItem.appendChild(img);
+    gallery.insertBefore(galleryItem, gallery.firstChild);
 
     uploadModal.style.display = "none";
   });
 
+  // 갤러리에서 이미지 클릭 시 모달 열기 및 현재 인덱스 업데이트
   gallery.addEventListener("click", function (e) {
+    // 실제 이미지 클릭 시 (wrapper 안의 img)
     if (e.target.tagName === "IMG") {
-      modalImage.src = e.target.src;
-      imageDescription.textContent =
-        e.target.getAttribute("data-description") || "설명이 없습니다.";
-      imageModal.style.display = "flex";
+      const galleryItems = Array.from(
+        gallery.querySelectorAll(".gallery-item img")
+      );
+      currentIndex = galleryItems.indexOf(e.target);
+      openImageModal(currentIndex);
     }
   });
 
+  // 모달 닫기
   closeImageModal.addEventListener("click", function () {
     imageModal.style.display = "none";
   });
@@ -121,6 +118,53 @@ document.addEventListener("DOMContentLoaded", function () {
       imageModal.style.display = "none";
     }
   });
+
+  // 좌우 화살표 클릭 이벤트
+  prevBtn.addEventListener("click", function (e) {
+    e.stopPropagation();
+    const galleryItems = Array.from(
+      gallery.querySelectorAll(".gallery-item img")
+    );
+    currentIndex =
+      (currentIndex - 1 + galleryItems.length) % galleryItems.length;
+    openImageModal(currentIndex, true);
+  });
+
+  nextBtn.addEventListener("click", function (e) {
+    e.stopPropagation();
+    const galleryItems = Array.from(
+      gallery.querySelectorAll(".gallery-item img")
+    );
+    currentIndex = (currentIndex + 1) % galleryItems.length;
+    openImageModal(currentIndex, true);
+  });
+
+  // 모달에 이미지를 부드럽게 전환하며 보여주는 함수
+  function openImageModal(index, animate = false) {
+    const galleryItems = Array.from(
+      gallery.querySelectorAll(".gallery-item img")
+    );
+    const targetImg = galleryItems[index];
+    if (!targetImg) return;
+
+    if (animate) {
+      modalImage.style.opacity = 0;
+      setTimeout(() => {
+        modalImage.src = targetImg.src;
+        imageDescription.textContent =
+          targetImg.getAttribute("data-description") || "설명이 없습니다.";
+      }, 300);
+      setTimeout(() => {
+        modalImage.style.opacity = 1;
+      }, 350);
+    } else {
+      modalImage.src = targetImg.src;
+      imageDescription.textContent =
+        targetImg.getAttribute("data-description") || "설명이 없습니다.";
+    }
+
+    imageModal.style.display = "flex";
+  }
 
   async function loadGallery() {
     const { data, error } = await supabaseClient
@@ -135,26 +179,23 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     data.forEach((item) => {
+      const galleryItem = document.createElement("div");
+      galleryItem.className = "gallery-item";
       const img = document.createElement("img");
       img.src = item.url;
       img.setAttribute(
         "data-description",
         item.description || "설명이 없습니다."
       );
-      gallery.appendChild(img);
+      galleryItem.appendChild(img);
+      gallery.appendChild(galleryItem);
     });
 
     offset += limit;
-
-    // 더 이상 불러올 데이터가 없으면 버튼 숨김
-    if (data.length < limit) {
-      loadMoreBtn.style.display = "none";
-    } else {
-      loadMoreBtn.style.display = "block";
-    }
+    loadMoreBtn.style.display = data.length < limit ? "none" : "block";
   }
 
   loadMoreBtn.addEventListener("click", loadGallery);
 
-  loadGallery(); // 첫 번째 20개 사진 로드
+  loadGallery(); // 최초 20개 사진 로드
 });

@@ -2,85 +2,119 @@ body {
   font-family: Arial, sans-serif;
   text-align: center;
   background-color: rgb(29, 28, 35);
+  margin: 0;
+  padding: 0;
 }
+
 header {
   color: rgb(255, 244, 244);
   padding: 10px 0;
   display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
+/* 갤러리 Grid 레이아웃: auto-fit과 minmax()로 반응형 셀 구성 */
 #gallery {
-  column-count: 3; /* 3개의 컬럼으로 배치 */
-  column-gap: 10px; /* 컬럼 간격 */
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 3%;
+  padding: 10px;
 }
 
-#gallery img {
-  width: 100%; /* 각 컬럼에 꽉 차게 */
-  break-inside: avoid; /* 사진이 컬럼 중간에서 잘리지 않도록 */
-  margin-bottom: 10px;
-  border-radius: 8px;
-}
-
-img {
+/* 각 셀은 전체 너비에 맞춰 정사각형(aspect-ratio 1:1)을 유지 */
+.gallery-item {
+  padding: 5%;
   width: 100%;
-  height: auto;
+  aspect-ratio: 1/1;
+  background-color: rgba(
+    0,
+    0,
+    0,
+    0.2
+  ); /* 셀 배경 (원하는 색상으로 조정 가능) */
   border-radius: 8px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 셀 내부의 이미지: 원본 비율 유지하며 컨테이너에 맞춤 */
+.gallery-item img {
+  border-radius: 19px;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transition: transform 0.3s;
   cursor: pointer;
-  transition: 0.3s;
 }
 
-img:hover {
-  transform: scale(1.05);
+.gallery-item img:hover {
+  transform: scale(1.03);
 }
 
-/* 모달 스타일 */
+/* 업로드 및 확대 모달 */
 .modal {
   display: none;
   position: fixed;
-  z-index: 1;
+  z-index: 10;
   left: 0;
   top: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgba(0, 0, 0, 0.9);
   justify-content: center;
   align-items: center;
 }
 
-.modal-content {
+/* 업로드 모달 스타일 */
+.upload-modal {
   background-color: #fefefe;
   padding: 20px;
   border-radius: 8px;
   width: 300px;
 }
 
+/* 모달 닫기 버튼 */
 .close {
   float: right;
   cursor: pointer;
   font-size: 20px;
 }
-/* 확대 이미지 모달 */
-#imageModal .modal-content {
-  width: auto;
+
+/* 확대 이미지 모달 스타일 */
+.image-modal {
+  position: relative;
+  background: rgba(0, 0, 0, 0);
+  padding: 10px;
+  border-radius: 8px;
   max-width: 90%;
   max-height: 90%;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
   align-items: center;
-  background: rgba(0, 0, 0, 0.8);
-  padding: 10px;
 }
 
 #modalImage {
-  width: 100%;
+  width: auto;
   height: auto;
+  max-width: 100%;
   max-height: 80vh;
   border-radius: 8px;
+  transition: opacity 0.3s ease;
 }
-#uploadBtn {
-  margin-left: 20px;
+
+#imageDescription {
+  color: white;
+  text-align: center;
   margin-top: 20px;
-  margin-bottom: 20px;
+  font-size: 16px;
+}
+
+/* 업로드 버튼 및 입력폼 스타일 */
+#uploadBtn {
+  margin: 20px;
   padding: 10px 20px;
   background: #3498db;
   color: white;
@@ -89,18 +123,21 @@ img:hover {
   cursor: pointer;
   transition: 0.3s;
 }
-#password {
+
+#password,
+#description {
   width: 100%;
-  padding-top: 10px;
-  padding-bottom: 10px;
+  padding: 10px;
+  margin: 5px 0;
   border-radius: 8px;
   border: 1px solid #ccc;
-  width: 100%;
 }
+
 #fileInput {
   margin: 5px;
   padding: 10px;
 }
+
 #submitBtn {
   margin: 5px;
   padding: 10px;
@@ -111,41 +148,8 @@ img:hover {
   cursor: pointer;
   transition: 0.3s;
 }
-#description {
-  width: 100%;
-  height: 60px;
-  margin: 5px 0;
-  padding: 10px;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-  resize: none;
-}
 
-#imageDescription {
-  color: white;
-  text-align: center;
-  margin-top: 30px;
-  font-size: 16px;
-}
-/* 확대 이미지 모달 */
-#imageModal .modal-content {
-  width: auto;
-  max-width: 90%;
-  max-height: 90%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background: rgba(0, 0, 0, 0.8);
-  padding: 10px;
-}
-
-#modalImage {
-  width: auto;
-  height: auto;
-  max-width: 100%;
-  max-height: 80vh;
-  border-radius: 8px;
-}
+/* "더 보기" 버튼 */
 #loadMoreBtn {
   margin: 20px auto;
   padding: 10px 20px;
@@ -157,6 +161,26 @@ img:hover {
   transition: 0.3s;
   display: block;
 }
-#loadMoreBtn:hover {
-  background: #2980b9;
+
+/* 화면 좌우에 고정된 화살표 버튼 */
+.arrow {
+  position: fixed;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 50px;
+  color: white;
+  cursor: pointer;
+  user-select: none;
+  z-index: 20;
+  padding: 10px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 50%;
+}
+
+.arrow.left {
+  left: 20px;
+}
+
+.arrow.right {
+  right: 20px;
 }
