@@ -9,9 +9,8 @@ body {
 
 header {
   color: rgb(255, 244, 244);
-  font-family: "Lucida Sans", "Lucida Sans Regular", "Lucida Grande",
-    "Lucida Sans Unicode", Geneva, Verdana, sans-serif;
-  padding: 20px;
+  font-family: "Gill Sans", "Gill Sans MT", Calibri, "Trebuchet MS", sans-serif;
+  padding: 1px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -127,7 +126,7 @@ header {
   border-radius: 19px;
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  object-fit: cover;
   transition: transform 0.3s;
   cursor: pointer;
 }
@@ -374,7 +373,7 @@ header {
   background-color: transparent; /* 배경색 제거 */
 }
 #imageModal {
-  background-color: rgba(0, 0, 0, 0.8);
+  background-color: rgba(0, 0, 0, 0.9);
 }
 /* 캐러셀 컨테이너를 고정 크기로 설정 */
 #carousel-container {
