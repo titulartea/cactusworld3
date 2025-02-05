@@ -373,3 +373,6 @@ header {
   border-radius: 8px;
   background-color: transparent; /* 배경색 제거 */
 }
+#imageModal {
+  background-color: rgba(0, 0, 0, 0.8);
+}
