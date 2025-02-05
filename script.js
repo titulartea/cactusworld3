@@ -1,13 +1,13 @@
 document.addEventListener("DOMContentLoaded", function () {
-  // Supabase 설정
+  // Supabase 설정 (실제 URL과 KEY로 변경)
   const SUPABASE_URL = "https://lkddstkbnxapncvdeynf.supabase.co";
   const SUPABASE_KEY =
     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxrZGRzdGtibnhhcG5jdmRleW5mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzg2NTkwMDYsImV4cCI6MjA1NDIzNTAwNn0.dFrdDQ-E_23MBe0YQwzNvHWsoShpqJwn7l26CdcJ1xk"; // 실제 키 사용
   const { createClient } = supabase;
   const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-  /* ---------- 기본 요소 선택 ---------- */
-  // 통합 모달 및 탭 관련
+  /* ---------- 요소 선택 ---------- */
+  // 통합 업로드/관리 모달 및 탭 관련
   const uploadBtn = document.getElementById("uploadBtn");
   const mainModal = document.getElementById("mainModal");
   const closeMainModal = document.getElementById("closeMainModal");
@@ -28,31 +28,39 @@ document.addEventListener("DOMContentLoaded", function () {
   const submitRecBtn = document.getElementById("submitRecBtn");
   const recList = document.getElementById("recList");
 
-  // 갤러리, 이미지 모달 등 (기존 코드와 동일)
+  // 갤러리 관련
   const gallery = document.getElementById("gallery");
-  const imageModal = document.getElementById("imageModal");
-  const modalImage = document.getElementById("modalImage");
-  const closeImageModal = document.getElementById("closeImageModal");
-  const imageDescription = document.getElementById("imageDescription");
   const loadMoreBtn = document.getElementById("loadMoreBtn");
 
+  // 이미지 확대(모달) 관련
+  const imageModal = document.getElementById("imageModal");
+  const modalImage = document.getElementById("modalImage");
+  const imageDescription = document.getElementById("imageDescription");
+  const closeImageModal = document.getElementById("closeImageModal");
+
+  // 갤러리 이미지 확대 모달 내 좌우 화살표
   const prevBtn = document.getElementById("prevBtn");
   const nextBtn = document.getElementById("nextBtn");
 
-  // 추천 캐러셀 관련 (변경 없이 유지)
+  // 추천 캐러셀 관련
   const carousel = document.getElementById("carousel");
   const prevCarousel = document.getElementById("prevCarousel");
   const nextCarousel = document.getElementById("nextCarousel");
 
   let offset = 0;
   const limit = 20;
-  let currentIndex = 0;
+  let currentIndex = 0; // 갤러리 모달 내 현재 이미지 인덱스
+
+  // 캐러셀 관련 변수
+  let carouselIndex = 0;
+  let carouselSlides = [];
+  let carouselTimer = null;
+  const carouselInterval = 5000;
 
   /* ---------- 모달 및 탭 전환 ---------- */
-  // 🌵 버튼 클릭 시 통합 모달 열기
+  // 🌵 버튼 클릭 시 통합 모달 열기 (기본 탭: 갤러리 업로드)
   uploadBtn.addEventListener("click", function () {
     mainModal.style.display = "flex";
-    // 기본 탭: 갤러리 업로드
     activateTab("galleryTab");
   });
 
@@ -69,7 +77,6 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 
   function activateTab(tabId) {
-    // 탭 내용 전환
     if (tabId === "galleryTab") {
       galleryTab.style.display = "block";
       recTab.style.display = "none";
@@ -78,7 +85,6 @@ document.addEventListener("DOMContentLoaded", function () {
       recTab.style.display = "block";
       loadRecommendedList(); // 추천 사진 목록을 최신 상태로 불러옴
     }
-    // 버튼 active 클래스 토글
     tabButtons.forEach((btn) => {
       if (btn.getAttribute("data-tab") === tabId) {
         btn.classList.add("active");
@@ -139,7 +145,7 @@ document.addEventListener("DOMContentLoaded", function () {
     mainModal.style.display = "none";
   });
 
-  /* ---------- 이미지 모달 (갤러리 이미지 클릭 시) ---------- */
+  /* ---------- 갤러리 이미지 확대 ---------- */
   gallery.addEventListener("click", function (e) {
     if (e.target.tagName === "IMG") {
       const galleryItems = Array.from(
@@ -232,12 +238,7 @@ document.addEventListener("DOMContentLoaded", function () {
   loadMoreBtn.addEventListener("click", loadGallery);
   loadGallery();
 
-  /* ---------- 추천 캐러셀 관련 (기존 코드 유지) ---------- */
-  let carouselIndex = 0;
-  let carouselSlides = [];
-  let carouselTimer = null;
-  const carouselInterval = 5000;
-
+  /* ---------- 추천 캐러셀 로드 및 관리 ---------- */
   async function loadRecommended() {
     const { data, error } = await supabaseClient
       .from("recommended")
@@ -255,7 +256,11 @@ document.addEventListener("DOMContentLoaded", function () {
       const img = document.createElement("img");
       img.src = item.url;
       img.alt = item.description || "추천 사진";
-      // 각 슬라이드에 삭제 버튼 (추천 캐러셀 내)
+      // 추천 이미지 클릭 시 확대 (원본 비율 유지: CSS의 object-fit: contain 활용)
+      img.addEventListener("click", function () {
+        openRecommendedModal(item.url, item.description);
+      });
+      // 삭제 버튼 (캐러셀 내)
       const delBtn = document.createElement("button");
       delBtn.className = "delete-rec";
       delBtn.textContent = "×";
@@ -276,6 +281,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
         alert("삭제되었습니다.");
         loadRecommended();
+        loadRecommendedList();
       });
       slide.appendChild(img);
       slide.appendChild(delBtn);
@@ -320,8 +326,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   loadRecommended();
 
-  /* ---------- 추천 사진 관리 탭: 추천 사진 업로드 및 목록 ---------- */
-  // 추천 사진 업로드
+  // 추천 사진 관리 탭: 추천 사진 업로드
   submitRecBtn.addEventListener("click", async function () {
     const password = recPasswordInput.value;
     const description = recDescriptionInput.value.trim();
@@ -362,11 +367,11 @@ document.addEventListener("DOMContentLoaded", function () {
       return;
     }
     alert("추천 사진 업로드 성공!");
-    // 업로드 후 추천 사진 목록 새로고침
     loadRecommendedList();
+    loadRecommended();
   });
 
-  // 추천 사진 목록 로드 (추천 사진 관리 탭 내)
+  // 추천 사진 관리 탭: 추천 사진 목록 로드
   async function loadRecommendedList() {
     const { data, error } = await supabaseClient
       .from("recommended")
@@ -382,6 +387,7 @@ document.addEventListener("DOMContentLoaded", function () {
       recItem.className = "rec-item";
       const thumb = document.createElement("img");
       thumb.src = item.url;
+      // CSS에서 object-fit: contain으로 원본 비율 유지
       const info = document.createElement("span");
       info.textContent = item.description || "";
       const delBtn = document.createElement("button");
@@ -403,12 +409,19 @@ document.addEventListener("DOMContentLoaded", function () {
         }
         alert("삭제되었습니다.");
         loadRecommendedList();
-        loadRecommended(); // 캐러셀도 갱신
+        loadRecommended();
       });
       recItem.appendChild(thumb);
       recItem.appendChild(info);
       recItem.appendChild(delBtn);
       recList.appendChild(recItem);
     });
+  }
+
+  // 추천 이미지 클릭 시 확대 (추천 이미지 전용)
+  function openRecommendedModal(src, description) {
+    modalImage.src = src;
+    imageDescription.textContent = description || "설명이 없습니다.";
+    imageModal.style.display = "flex";
   }
 });
