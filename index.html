@@ -9,40 +9,79 @@
   <body>
     <header>
       <h1>CACTUS WORLD</h1>
-      <button id="uploadBtn">upload</button>
+      <!-- 상단의 🌵 버튼을 클릭하면 업로드 메뉴 모달이 열림 -->
+      <button id="uploadBtn">🌵</button>
     </header>
 
-    <!-- 갤러리 (각 사진을 감싸는 셀을 adaptive하게 구성) -->
+    <!-- 추천 사진 캐러셀 (갤러리 위) -->
+    <div id="carousel-container">
+      <div id="carousel"></div>
+      <button class="carousel-arrow left" id="prevCarousel">❮</button>
+      <button class="carousel-arrow right" id="nextCarousel">❯</button>
+    </div>
+
+    <!-- 갤러리 -->
     <div id="gallery"></div>
     <button id="loadMoreBtn" style="display: none">더 보기</button>
 
-    <!-- 모달 (사진 업로드 창) -->
-    <div id="uploadModal" class="modal">
+    <!-- 통합 업로드/관리 모달 (탭 전환) -->
+    <div id="mainModal" class="modal">
       <div class="modal-content upload-modal">
-        <span class="close">&times;</span>
-        <h2>여긴 내 사이트니까 나만 사진을 올릴 수 있어요</h2>
-        <input
-          type="password"
-          id="password"
-          placeholder="비밀번호를 입력하세요"
-        />
-        <input type="file" id="fileInput" />
-        <textarea
-          id="description"
-          placeholder="사진 소개를 입력하세요"
-        ></textarea>
-        <button id="submitBtn">업로드</button>
+        <span class="close" id="closeMainModal">&times;</span>
+        <!-- 탭 버튼 -->
+        <div class="tab-buttons">
+          <button class="tab-btn active" data-tab="galleryTab">
+            갤러리 업로드
+          </button>
+          <button class="tab-btn" data-tab="recTab">추천 사진 관리</button>
+        </div>
+        <!-- 탭 내용: 갤러리 업로드 -->
+        <div class="tab-content" id="galleryTab">
+          <h2>갤러리 업로드</h2>
+          <input
+            type="password"
+            id="password"
+            placeholder="비밀번호를 입력하세요"
+          />
+          <input type="file" id="fileInput" />
+          <textarea
+            id="description"
+            placeholder="사진 소개를 입력하세요"
+          ></textarea>
+          <button id="submitBtn">업로드</button>
+        </div>
+        <!-- 탭 내용: 추천 사진 관리 -->
+        <div class="tab-content" id="recTab" style="display: none">
+          <h2>추천 사진 관리</h2>
+          <!-- 추천 사진 업로드 폼 -->
+          <div class="rec-upload">
+            <input
+              type="password"
+              id="recPassword"
+              placeholder="비밀번호를 입력하세요"
+            />
+            <input type="file" id="recFileInput" />
+            <textarea
+              id="recDescription"
+              placeholder="추천 사진 소개를 입력하세요"
+            ></textarea>
+            <button id="submitRecBtn">추천 사진 업로드</button>
+          </div>
+          <!-- 저장된 추천 사진 목록 (삭제 버튼 포함) -->
+          <div id="recList">
+            <!-- 추천 사진 목록은 JS에서 동적으로 생성됩니다. -->
+          </div>
+        </div>
       </div>
     </div>
 
-    <!-- 사진 클릭 시 확대 모달 -->
+    <!-- 이미지 확대 모달 (갤러리 내 이미지 클릭 시) -->
     <div id="imageModal" class="modal">
       <div class="modal-content image-modal">
         <span class="close" id="closeImageModal">&times;</span>
         <img id="modalImage" src="" alt="확대된 이미지" />
         <p id="imageDescription"></p>
       </div>
-      <!-- 화면 좌우에 고정된 화살표 버튼 -->
       <div class="arrow left" id="prevBtn">❮</div>
       <div class="arrow right" id="nextBtn">❯</div>
     </div>

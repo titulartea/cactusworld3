@@ -4,22 +4,110 @@ body {
   background-color: rgb(29, 28, 35);
   margin: 0;
   padding: 0;
+  -webkit-tap-highlight-color: transparent;
 }
 
 header {
   color: rgb(255, 244, 244);
-  padding: 10px 0;
+  font-family: "Lucida Sans", "Lucida Sans Regular", "Lucida Grande",
+    "Lucida Sans Unicode", Geneva, Verdana, sans-serif;
+  padding: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
+  background-color: rgb(19, 18, 27);
+}
+
+/* 추천 사진 캐러셀 영역 */
+#carousel-container {
+  position: relative;
+  width: 90%;
+  max-width: 800px;
+  margin: 20px auto;
+  overflow: hidden;
+  border-radius: 8px;
+  background-color: rgba(0, 0, 0, 0.2);
+}
+
+#carousel {
+  display: flex;
+  transition: transform 0.5s ease-in-out;
+  /* 캐러셀 내부 슬라이드들이 한 줄로 배치됨 */
+}
+
+.carousel-slide {
+  min-width: 100%;
+  position: relative;
+}
+
+.carousel-slide img {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 8px;
+}
+
+.carousel-slide .delete-rec {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  background: rgba(255, 0, 0, 0.7);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  font-size: 18px;
+  cursor: pointer;
+  width: 30px;
+  height: 30px;
+  line-height: 28px;
+}
+
+/* 캐러셀 좌우 화살표 */
+.carousel-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 40px;
+  color: white;
+  cursor: pointer;
+  background: rgba(0, 0, 0, 0.3);
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  line-height: 35px;
+  user-select: none;
+  z-index: 5;
+}
+
+.carousel-arrow.left {
+  left: 10px;
+}
+
+.carousel-arrow.right {
+  right: 10px;
+}
+
+/* 추천사진 업로드 버튼 */
+#uploadRecBtn {
+  margin: 10px auto;
+  padding: 8px 16px;
+  background: #3498db;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.3s;
 }
 
 /* 갤러리 Grid 레이아웃: auto-fit과 minmax()로 반응형 셀 구성 */
 #gallery {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 3%;
+  gap: 5%;
+  min-block-size: 500px;
   padding: 10px;
+  min-width: 200px;
 }
 
 /* 각 셀은 전체 너비에 맞춰 정사각형(aspect-ratio 1:1)을 유지 */
@@ -27,12 +115,7 @@ header {
   padding: 5%;
   width: 100%;
   aspect-ratio: 1/1;
-  background-color: rgba(
-    0,
-    0,
-    0,
-    0.2
-  ); /* 셀 배경 (원하는 색상으로 조정 가능) */
+  background-color: rgba(0, 0, 0, 0.2);
   border-radius: 8px;
   overflow: hidden;
   display: flex;
@@ -40,7 +123,7 @@ header {
   justify-content: center;
 }
 
-/* 셀 내부의 이미지: 원본 비율 유지하며 컨테이너에 맞춤 */
+/* 셀 내부의 이미지 */
 .gallery-item img {
   border-radius: 19px;
   width: 100%;
@@ -114,9 +197,8 @@ header {
 
 /* 업로드 버튼 및 입력폼 스타일 */
 #uploadBtn {
-  margin: 20px;
-  padding: 10px 20px;
-  background: #3498db;
+  font-size: 200%;
+  background: none;
   color: white;
   border: none;
   border-radius: 8px;
@@ -125,20 +207,24 @@ header {
 }
 
 #password,
-#description {
-  width: 100%;
+#description,
+#recPassword,
+#recDescription {
+  width: 90%;
   padding: 10px;
   margin: 5px 0;
   border-radius: 8px;
   border: 1px solid #ccc;
 }
 
-#fileInput {
+#fileInput,
+#recFileInput {
   margin: 5px;
   padding: 10px;
 }
 
-#submitBtn {
+#submitBtn,
+#submitRecBtn {
   margin: 5px;
   padding: 10px;
   background: #3498db;
@@ -152,6 +238,7 @@ header {
 /* "더 보기" 버튼 */
 #loadMoreBtn {
   margin: 20px auto;
+  margin-top: 20%;
   padding: 10px 20px;
   background: #3498db;
   color: white;
@@ -162,7 +249,7 @@ header {
   display: block;
 }
 
-/* 화면 좌우에 고정된 화살표 버튼 */
+/* 화면 좌우에 고정된 화살표 버튼 (갤러리 확대 모달) */
 .arrow {
   position: fixed;
   top: 50%;
@@ -173,7 +260,7 @@ header {
   user-select: none;
   z-index: 20;
   padding: 10px;
-  background: rgba(0, 0, 0, 0.3);
+  background: none;
   border-radius: 50%;
 }
 
@@ -183,4 +270,108 @@ header {
 
 .arrow.right {
   right: 20px;
+}
+/* 기존 스타일 유지 … */
+
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 10;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background: none;
+  justify-content: center;
+  align-items: center;
+}
+
+/* 업로드 모달(통합 모달) 스타일 */
+.upload-modal {
+  background-color: #fefefe;
+  padding: 20px;
+  border-radius: 8px;
+  width: 320px;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+}
+
+/* 모달 닫기 버튼 */
+.close {
+  float: right;
+  cursor: pointer;
+  font-size: 20px;
+}
+
+/* 탭 버튼 영역 */
+.tab-buttons {
+  display: flex;
+  margin-bottom: 10px;
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  background: #ccc;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.tab-btn.active {
+  background: #3498db;
+  color: white;
+}
+
+/* 탭 내용 영역 */
+.tab-content {
+  text-align: left;
+}
+
+/* 추천 사진 목록 스타일 (추천 사진 관리 탭 내) */
+#recList {
+  margin-top: 15px;
+}
+
+.rec-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.rec-item img {
+  width: 60px;
+  height: auto;
+  border-radius: 4px;
+  margin-right: 10px;
+}
+.delete-rec {
+  display: none;
+}
+.carousel-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 40px;
+  color: white;
+  cursor: pointer;
+  /* 기존: background: rgba(0, 0, 0, 0.3); */
+  background: none; /* 배경 제거 */
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  line-height: 40px;
+  user-select: none;
+  z-index: 5;
+}
+#carousel-container {
+  position: relative;
+  width: 90%;
+  max-width: 800px;
+  margin: 20px auto;
+  overflow: hidden;
+  border-radius: 8px;
+  background-color: transparent; /* 배경색 제거 */
 }
