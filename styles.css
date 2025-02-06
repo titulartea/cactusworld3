@@ -216,7 +216,7 @@ header {
   margin: auto;
   margin-bottom: 10px;
   padding: 10px;
-  font-size: xxx-large;
+  font-size: xx-large;
   font-weight: bolder;
   background: rgb(255, 255, 255, 0);
   color: rgb(255, 255, 255);
@@ -317,4 +317,17 @@ header {
 
 .arrow.right {
   right: 20px;
+}
+.modal-close-btn {
+  margin-top: 10px;
+  padding: 7px 16px;
+  background-color: rgb(98, 97, 109, 0.5);
+  color: white;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+.modal-close-btn:hover {
+  background-color: #2980b9;
 }

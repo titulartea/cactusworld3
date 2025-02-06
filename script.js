@@ -449,3 +449,8 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 });
 (loadMoreBtn.innerHTML = "﹀"), (loadMoreBtn.style.display = "none");
+// 기존 코드의 모달 관련 이벤트 리스너 아래에 추가
+const closeImageBtn = document.getElementById("closeImageBtn");
+closeImageBtn.addEventListener("click", function () {
+  imageModal.style.display = "none";
+});
