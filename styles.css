@@ -300,6 +300,8 @@ header {
 /* 화면 좌우에 고정된 화살표 버튼 (갤러리 확대 모달) */
 .arrow {
   position: fixed;
+  width: 50%;
+  height: 100%;
   top: 50%;
   transform: translateY(-50%);
   font-size: 50px;
@@ -309,6 +311,7 @@ header {
   z-index: 20;
   padding: 10px;
   border-radius: 50%;
+  opacity: 0;
 }
 
 .arrow.left {
@@ -319,12 +322,14 @@ header {
   right: 20px;
 }
 .modal-close-btn {
+  position: fixed;
+  top: 20px;
   margin-top: 10px;
-  padding: 7px 16px;
-  background-color: rgb(98, 97, 109, 0.5);
+  padding: 13px 16px;
+  background-color: rgb(98, 97, 109, 0.4);
   color: white;
   border: none;
-  border-radius: 3px;
+  border-radius: 90px;
   cursor: pointer;
   transition: background-color 0.3s;
 }
