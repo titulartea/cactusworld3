@@ -652,7 +652,3 @@ closeImageBtn.addEventListener("click", function () {
 closeImageBtn.addEventListener("click", function () {
   document.getElementById("imageModal").style.display = "none";
 });
-document.getElementById("exitButton").addEventListener("click", function () {
-  // 나가기 버튼 (exitButton)은 이미 DOMContentLoaded 내에서 처리됨
-  editDeleteModal.style.display = "none";
-});

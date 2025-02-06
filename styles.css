@@ -469,3 +469,7 @@ button {
   cursor: pointer;
   border-radius: 4px;
 }
+#exitButton {
+  display: none;
+}
+/* 옵션 모달 (editDeleteModal) 스타일 */
