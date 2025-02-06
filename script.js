@@ -1,8 +1,8 @@
 document.addEventListener("DOMContentLoaded", function () {
-  // Supabase 설정 (실제 URL과 KEY로 변경)
+  // Supabase 설정 (실제 URL과 KEY 사용)
   const SUPABASE_URL = "https://lkddstkbnxapncvdeynf.supabase.co";
   const SUPABASE_KEY =
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxrZGRzdGtibnhhcG5jdmRleW5mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzg2NTkwMDYsImV4cCI6MjA1NDIzNTAwNn0.dFrdDQ-E_23MBe0YQwzNvHWsoShpqJwn7l26CdcJ1xk"; // 실제 키 사용
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxrZGRzdGtibnhhcG5jdmRleW5mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzg2NTkwMDYsImV4cCI6MjA1NDIzNTAwNn0.dFrdDQ-E_23MBe0YQwzNvHWsoShpqJwn7l26CdcJ1xk";
   const { createClient } = supabase;
   const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -58,7 +58,6 @@ document.addEventListener("DOMContentLoaded", function () {
   const carouselInterval = 5000;
 
   /* ---------- 모달 및 탭 전환 ---------- */
-  // 🌵 버튼 클릭 시 통합 모달 열기 (기본 탭: 갤러리 업로드)
   uploadBtn.addEventListener("click", function () {
     mainModal.style.display = "flex";
     activateTab("galleryTab");
@@ -68,7 +67,6 @@ document.addEventListener("DOMContentLoaded", function () {
     mainModal.style.display = "none";
   });
 
-  // 탭 버튼 클릭 이벤트 처리
   tabButtons.forEach((btn) => {
     btn.addEventListener("click", function () {
       const tabToActivate = this.getAttribute("data-tab");
@@ -83,14 +81,12 @@ document.addEventListener("DOMContentLoaded", function () {
     } else {
       galleryTab.style.display = "none";
       recTab.style.display = "block";
-      loadRecommendedList(); // 추천 사진 목록을 최신 상태로 불러옴
+      loadRecommendedList();
     }
     tabButtons.forEach((btn) => {
-      if (btn.getAttribute("data-tab") === tabId) {
-        btn.classList.add("active");
-      } else {
-        btn.classList.remove("active");
-      }
+      btn.getAttribute("data-tab") === tabId
+        ? btn.classList.add("active")
+        : btn.classList.remove("active");
     });
   }
 
@@ -256,11 +252,9 @@ document.addEventListener("DOMContentLoaded", function () {
       const img = document.createElement("img");
       img.src = item.url;
       img.alt = item.description || "추천 사진";
-      // 추천 이미지 클릭 시 확대 (원본 비율 유지: CSS의 object-fit: contain 활용)
       img.addEventListener("click", function () {
         openRecommendedModal(item.url, item.description);
       });
-      // 삭제 버튼 (캐러셀 내)
       const delBtn = document.createElement("button");
       delBtn.className = "delete-rec";
       delBtn.textContent = "×";
@@ -296,6 +290,13 @@ document.addEventListener("DOMContentLoaded", function () {
   function updateCarousel() {
     const offsetX = -carouselIndex * 100;
     carousel.style.transform = `translateX(${offsetX}%)`;
+    // 현재 슬라이드 이미지로 배경 업데이트
+    const currentSlideImg = carouselSlides[carouselIndex].querySelector("img");
+    if (currentSlideImg) {
+      document.getElementById(
+        "carousel-bg"
+      ).style.backgroundImage = `url(${currentSlideImg.src})`;
+    }
   }
 
   prevCarousel.addEventListener("click", function () {
@@ -309,6 +310,29 @@ document.addEventListener("DOMContentLoaded", function () {
     carouselIndex = (carouselIndex + 1) % carouselSlides.length;
     updateCarousel();
     resetCarouselAuto();
+  });
+
+  // 모바일 터치 스와이프 이벤트 추가
+  let touchStartX = 0;
+  let touchEndX = 0;
+  carousel.addEventListener("touchstart", function (e) {
+    touchStartX = e.touches[0].clientX;
+  });
+  carousel.addEventListener("touchend", function (e) {
+    touchEndX = e.changedTouches[0].clientX;
+    const diff = touchStartX - touchEndX;
+    if (Math.abs(diff) > 50) {
+      if (diff > 0) {
+        // 왼쪽 스와이프: 다음 슬라이드
+        carouselIndex = (carouselIndex + 1) % carouselSlides.length;
+      } else {
+        // 오른쪽 스와이프: 이전 슬라이드
+        carouselIndex =
+          (carouselIndex - 1 + carouselSlides.length) % carouselSlides.length;
+      }
+      updateCarousel();
+      resetCarouselAuto();
+    }
   });
 
   function startCarouselAuto() {
@@ -387,7 +411,6 @@ document.addEventListener("DOMContentLoaded", function () {
       recItem.className = "rec-item";
       const thumb = document.createElement("img");
       thumb.src = item.url;
-      // CSS에서 object-fit: contain으로 원본 비율 유지
       const info = document.createElement("span");
       info.textContent = item.description || "";
       const delBtn = document.createElement("button");
