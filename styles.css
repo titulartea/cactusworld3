@@ -301,7 +301,7 @@ header {
 .arrow {
   position: fixed;
   width: 50%;
-  height: 35%;
+  height: 30%;
   top: 50%;
   transform: translateY(-50%);
   font-size: 50px;
@@ -321,18 +321,65 @@ header {
 .arrow.right {
   right: 20px;
 }
+
 .modal-close-btn {
   position: fixed;
   top: 20px;
   margin-top: 10px;
   padding: 13px 16px;
-  background-color: rgb(98, 97, 109, 0.4);
+  background-color: rgba(98, 97, 109, 0.4);
   color: white;
   border: none;
   border-radius: 90px;
   cursor: pointer;
   transition: background-color 0.3s;
 }
+
 .modal-close-btn:hover {
   background-color: #2980b9;
+}
+#openOptionBtn {
+  position: fixed;
+  top: 10px;
+  right: 20px;
+  background: none;
+  font-weight: 900;
+  font-size: x-large;
+}
+/* 수정 버튼 (하늘색) */
+#editButton {
+  background-color: #2196f3;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+/* 삭제 버튼 (빨간색) */
+#deleteButton {
+  background-color: #f44336;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+/* 나가기 버튼 (흰색 + 검은색 테두리) */
+#exitButton {
+  background-color: #ffffff;
+  color: black;
+  border: 2px solid #000000;
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+/* 버튼 간격 */
+button {
+  margin: 10px;
 }
