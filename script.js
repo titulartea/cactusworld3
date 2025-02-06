@@ -631,7 +631,7 @@ document.addEventListener("DOMContentLoaded", function () {
   imageModal.addEventListener("touchend", function (e) {
     modalTouchEndX = e.changedTouches[0].clientX;
     const diff = modalTouchStartX - modalTouchEndX;
-    if (Math.abs(diff) > 50) {
+    if (Math.abs(diff) > 40) {
       if (diff > 0) {
         // 왼쪽 스와이프: 다음 사진
         nextBtn.click();

@@ -472,4 +472,6 @@ button {
 #exitButton {
   display: none;
 }
-/* 옵션 모달 (editDeleteModal) 스타일 */
+#module {
+  display: none;
+}
