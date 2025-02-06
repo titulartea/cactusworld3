@@ -448,3 +448,4 @@ document.addEventListener("DOMContentLoaded", function () {
     imageModal.style.display = "flex";
   }
 });
+(loadMoreBtn.innerHTML = "﹀"), (loadMoreBtn.style.display = "none");
