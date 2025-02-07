@@ -53,7 +53,7 @@ document.addEventListener("DOMContentLoaded", function () {
   const editFileInput = document.getElementById("editFileInput");
 
   let offset = 0;
-  const limit = 20;
+  const limit = 32;
   let currentIndex = 0; // 갤러리 모달 내 현재 이미지 인덱스
   let currentPhotoRecord = null; // 현재 모달에서 열려있는 사진 정보 객체
 
