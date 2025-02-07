@@ -27,11 +27,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
   const gallery = document.getElementById("gallery");
   const loadMoreBtn = document.getElementById("loadMoreBtn");
+  loadMoreBtn.innerHTML = "﹀";
+  loadMoreBtn.style.display = "none";
 
   const imageModal = document.getElementById("imageModal");
   const modalImage = document.getElementById("modalImage");
   const imageDescription = document.getElementById("imageDescription");
-  const closeImageModal = document.getElementById("closeImageModal");
+  const closeImageBtn = document.getElementById("closeImageBtn");
 
   const openOptionBtn = document.getElementById("openOptionBtn");
   const prevBtn = document.getElementById("prevBtn");
@@ -43,10 +45,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // 사진 옵션 모달 관련 요소
   const editDeleteModal = document.getElementById("editDeleteModal");
-  const closeEditDeleteModal = document.getElementById("closeEditDeleteModal");
+
   const editPhotoBtnOption = document.getElementById("editPhotoBtnOption");
   const deletePhotoBtnOption = document.getElementById("deletePhotoBtnOption");
-  const exitBtn = document.getElementById("exitButton");
 
   // 수정 시 파일 교체를 위한 숨김 파일 입력
   const editFileInput = document.getElementById("editFileInput");
@@ -60,7 +61,7 @@ document.addEventListener("DOMContentLoaded", function () {
   let carouselIndex = 0;
   let carouselSlides = [];
   let carouselTimer = null;
-  const carouselInterval = 5000;
+  const carouselInterval = 2500;
 
   /* ---------- 모달 및 탭 전환 ---------- */
   uploadBtn.addEventListener("click", function () {
@@ -220,10 +221,12 @@ document.addEventListener("DOMContentLoaded", function () {
     imageModal.style.display = "flex";
   }
 
-  closeImageModal.addEventListener("click", function () {
+  // 모달 닫기 버튼 (중복 없이 한 번만 등록)
+  closeImageBtn.addEventListener("click", function () {
     imageModal.style.display = "none";
   });
 
+  // 모달 바깥 영역 클릭 시 닫기
   imageModal.addEventListener("click", function (e) {
     if (e.target === imageModal) {
       imageModal.style.display = "none";
@@ -240,27 +243,30 @@ document.addEventListener("DOMContentLoaded", function () {
     openImageModal(currentIndex, true);
   });
 
-  nextBtn.addEventListener("click", function (e) {
+  // nextBtn 클릭 시, 마지막 사진이면 추가 사진 로드 후 다음 사진으로 이동
+  nextBtn.addEventListener("click", async function (e) {
     e.stopPropagation();
-    const galleryItems = Array.from(
+    let galleryItems = Array.from(
       gallery.querySelectorAll(".gallery-item img")
     );
-    currentIndex = (currentIndex + 1) % galleryItems.length;
+    if (currentIndex === galleryItems.length - 1) {
+      await loadGallery();
+      galleryItems = Array.from(gallery.querySelectorAll(".gallery-item img"));
+      if (currentIndex < galleryItems.length - 1) {
+        currentIndex++;
+      } else {
+        alert("더 이상 사진이 없습니다.");
+        return;
+      }
+    } else {
+      currentIndex++;
+    }
     openImageModal(currentIndex, true);
   });
 
   /* ---------- 옵션 버튼을 통한 사진 옵션 모달 열기 ---------- */
   openOptionBtn.addEventListener("click", function () {
     editDeleteModal.style.display = "flex";
-  });
-
-  closeEditDeleteModal.addEventListener("click", function () {
-    editDeleteModal.style.display = "none";
-  });
-
-  // 나가기 버튼 클릭 시 옵션 모달 닫기
-  exitBtn.addEventListener("click", function () {
-    editDeleteModal.style.display = "none";
   });
 
   /* ---------- 수정 기능 (옵션 모달 내 수정 버튼) ---------- */
@@ -270,19 +276,17 @@ document.addEventListener("DOMContentLoaded", function () {
       alert("비밀번호가 틀렸습니다!");
       return;
     }
-    // 비밀번호가 맞으면 옵션 모달을 바로 닫음
     editDeleteModal.style.display = "none";
     const newDescription = prompt(
       "새로운 사진 소개를 입력하세요",
       currentPhotoRecord.description
     );
-    if (newDescription === null) return; // 취소 시
-    // 옵션 UI를 동적으로 생성하는 함수 호출
+    if (newDescription === null) return;
     showEditOptions(newDescription);
   });
 
-  // 옵션 UI를 동적으로 생성하는 함수 (수정 관련)
   function showEditOptions(newDescription) {
+    // 기존 옵션 UI 제거
     const existingOptions = document.getElementById("editOptions");
     if (existingOptions) existingOptions.remove();
 
@@ -295,7 +299,6 @@ document.addEventListener("DOMContentLoaded", function () {
     optionContainer.style.padding = "10px";
     optionContainer.style.borderRadius = "8px";
     optionContainer.style.zIndex = "30";
-    // 버튼에 CSS 클래스와 인라인 스타일 추가
     optionContainer.innerHTML = `
       <button id="changeFileBtn" class="modal-btn edit-btn" style="margin-right:10px;">사진 파일 변경</button>
       <button id="updateDescBtn" class="modal-btn edit-btn">소개만 수정</button>
@@ -304,7 +307,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     document
       .getElementById("changeFileBtn")
-      .addEventListener("click", async function (e) {
+      .addEventListener("click", async function () {
         editFileInput.click();
         editFileInput.onchange = async function (event) {
           if (event.target.files.length > 0) {
@@ -350,7 +353,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     document
       .getElementById("updateDescBtn")
-      .addEventListener("click", async function (e) {
+      .addEventListener("click", async function () {
         const { error: updateError } = await supabaseClient
           .from("photos")
           .update({ description: newDescription })
@@ -376,7 +379,6 @@ document.addEventListener("DOMContentLoaded", function () {
       alert("비밀번호가 틀렸습니다!");
       return;
     }
-    // 비밀번호가 맞으면 옵션 모달을 바로 닫음
     editDeleteModal.style.display = "none";
     const { error } = await supabaseClient
       .from("photos")
@@ -400,7 +402,6 @@ document.addEventListener("DOMContentLoaded", function () {
     imageModal.style.display = "none";
   });
 
-  // 파일 URL에서 파일 경로(uploads/...)를 추출하는 헬퍼 함수
   function getFilePathFromUrl(url) {
     const marker = "/images/";
     const index = url.indexOf(marker);
@@ -432,7 +433,6 @@ document.addEventListener("DOMContentLoaded", function () {
       const delBtn = document.createElement("button");
       delBtn.className = "delete-rec";
       delBtn.textContent = "×";
-      // 인라인 스타일 (빨강 배경, 흰색 글씨)
       delBtn.style.backgroundColor = "#f44336";
       delBtn.style.color = "white";
       delBtn.addEventListener("click", async function (e) {
@@ -497,12 +497,10 @@ document.addEventListener("DOMContentLoaded", function () {
     touchEndX = e.changedTouches[0].clientX;
     const diff = touchStartX - touchEndX;
     if (Math.abs(diff) > 50) {
-      if (diff > 0) {
-        carouselIndex = (carouselIndex + 1) % carouselSlides.length;
-      } else {
-        carouselIndex =
-          (carouselIndex - 1 + carouselSlides.length) % carouselSlides.length;
-      }
+      carouselIndex =
+        diff > 0
+          ? (carouselIndex + 1) % carouselSlides.length
+          : (carouselIndex - 1 + carouselSlides.length) % carouselSlides.length;
       updateCarousel();
       resetCarouselAuto();
     }
@@ -523,7 +521,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   loadRecommended();
 
-  /* ---------- 추천 사진 관리 탭 관련 ---------- */
+  /* ---------- 추천 사진 관리 탭 ---------- */
   submitRecBtn.addEventListener("click", async function () {
     const password = recPasswordInput.value;
     const description = recDescriptionInput.value.trim();
@@ -588,7 +586,6 @@ document.addEventListener("DOMContentLoaded", function () {
       const delBtn = document.createElement("button");
       delBtn.className = "rec-delete";
       delBtn.textContent = "삭제";
-      // 삭제 버튼 인라인 스타일 (빨강 배경, 흰색 글씨)
       delBtn.style.backgroundColor = "#f44336";
       delBtn.style.color = "white";
       delBtn.addEventListener("click", async function () {
@@ -622,7 +619,7 @@ document.addEventListener("DOMContentLoaded", function () {
     imageModal.style.display = "flex";
   }
 
-  /* ---------- 확대된 사진 모달에서 손가락 스와이프로 사진 이동 ---------- */
+  /* ---------- 확대된 사진 모달에서 스와이프로 사진 이동 ---------- */
   let modalTouchStartX = 0;
   let modalTouchEndX = 0;
   imageModal.addEventListener("touchstart", function (e) {
@@ -631,24 +628,8 @@ document.addEventListener("DOMContentLoaded", function () {
   imageModal.addEventListener("touchend", function (e) {
     modalTouchEndX = e.changedTouches[0].clientX;
     const diff = modalTouchStartX - modalTouchEndX;
-    if (Math.abs(diff) > 40) {
-      if (diff > 0) {
-        // 왼쪽 스와이프: 다음 사진
-        nextBtn.click();
-      } else {
-        // 오른쪽 스와이프: 이전 사진
-        prevBtn.click();
-      }
+    if (Math.abs(diff) > 30) {
+      diff > 0 ? nextBtn.click() : prevBtn.click();
     }
   });
-});
-
-// 기존 모달 닫기 버튼 이벤트 (중복 등록 방지를 위해)
-const closeImageBtn = document.getElementById("closeImageBtn");
-closeImageBtn.addEventListener("click", function () {
-  document.getElementById("imageModal").style.display = "none";
-});
-(loadMoreBtn.innerHTML = "﹀"), (loadMoreBtn.style.display = "none");
-closeImageBtn.addEventListener("click", function () {
-  document.getElementById("imageModal").style.display = "none";
 });
