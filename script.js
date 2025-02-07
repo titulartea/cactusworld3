@@ -628,7 +628,7 @@ document.addEventListener("DOMContentLoaded", function () {
   imageModal.addEventListener("touchend", function (e) {
     modalTouchEndX = e.changedTouches[0].clientX;
     const diff = modalTouchStartX - modalTouchEndX;
-    if (Math.abs(diff) > 30) {
+    if (Math.abs(diff) > 50) {
       diff > 0 ? nextBtn.click() : prevBtn.click();
     }
   });
