@@ -96,7 +96,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  /* ---------- 갤러리 업로드 ---------- */
+  /* ---------- 갤러리 업로드 (개선된 코드) ---------- */
   submitBtn.addEventListener("click", async function () {
     const password = passwordInput.value;
     const description = descriptionInput.value.trim();
@@ -110,6 +110,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
     const file = fileInput.files[0];
     const filePath = `uploads/${Date.now()}_${file.name}`;
+    // 이미지 스토리지 업로드
     const { error } = await supabaseClient.storage
       .from("images")
       .upload(filePath, file);
@@ -117,6 +118,7 @@ document.addEventListener("DOMContentLoaded", function () {
       alert("업로드 중 오류가 발생했습니다: " + error.message);
       return;
     }
+    // 공개 URL 가져오기
     const { data: urlData, error: urlError } = supabaseClient.storage
       .from("images")
       .getPublicUrl(filePath);
@@ -126,9 +128,12 @@ document.addEventListener("DOMContentLoaded", function () {
       );
       return;
     }
-    const { error: insertError } = await supabaseClient
+    // DB에 사진 정보를 insert (실제 DB의 id를 반환받도록 함)
+    const { data: insertedData, error: insertError } = await supabaseClient
       .from("photos")
-      .insert([{ url: urlData.publicUrl, description }]);
+      .insert([{ url: urlData.publicUrl, description }], {
+        returning: "representation",
+      });
     if (insertError) {
       alert(
         "사진 정보를 저장하는 중 오류가 발생했습니다: " +
@@ -136,14 +141,14 @@ document.addEventListener("DOMContentLoaded", function () {
       );
       return;
     }
-    // 갤러리에 새 이미지 추가 (data-id 속성 추가)
+    const photoRecord = insertedData[0];
+    // 갤러리에 새 이미지 추가 (실제 DB의 id 사용)
     const galleryItem = document.createElement("div");
     galleryItem.className = "gallery-item";
     const img = document.createElement("img");
     img.src = urlData.publicUrl;
     img.setAttribute("data-description", description);
-    // 임시 id 할당 (실제 DB의 id로 대체 필요)
-    img.setAttribute("data-id", Date.now());
+    img.setAttribute("data-id", photoRecord.id);
     galleryItem.appendChild(img);
     gallery.insertBefore(galleryItem, gallery.firstChild);
     mainModal.style.display = "none";
@@ -221,7 +226,7 @@ document.addEventListener("DOMContentLoaded", function () {
     imageModal.style.display = "flex";
   }
 
-  // 모달 닫기 버튼 (중복 없이 한 번만 등록)
+  // 모달 닫기 버튼
   closeImageBtn.addEventListener("click", function () {
     imageModal.style.display = "none";
   });
@@ -305,14 +310,18 @@ document.addEventListener("DOMContentLoaded", function () {
     `;
     imageModal.appendChild(optionContainer);
 
+    // 사진 파일 변경 처리
     document
       .getElementById("changeFileBtn")
-      .addEventListener("click", async function () {
+      .addEventListener("click", function () {
         editFileInput.click();
         editFileInput.onchange = async function (event) {
           if (event.target.files.length > 0) {
             const file = event.target.files[0];
             const filePath = `uploads/${Date.now()}_${file.name}`;
+            // 기존 파일 URL 저장 (이전 파일 삭제용)
+            const oldUrl = currentPhotoRecord.url;
+            // 새 파일 업로드
             const { error } = await supabaseClient.storage
               .from("images")
               .upload(filePath, file);
@@ -329,6 +338,7 @@ document.addEventListener("DOMContentLoaded", function () {
               optionContainer.remove();
               return;
             }
+            // DB 업데이트: 새 URL과 수정된 소개 적용
             const { error: updateError } = await supabaseClient
               .from("photos")
               .update({ url: urlData.publicUrl, description: newDescription })
@@ -338,7 +348,13 @@ document.addEventListener("DOMContentLoaded", function () {
               optionContainer.remove();
               return;
             }
+            // 기존 스토리지 파일 삭제 (중복 파일 방지)
+            const oldFilePath = getFilePathFromUrl(oldUrl);
+            if (oldFilePath) {
+              await supabaseClient.storage.from("images").remove([oldFilePath]);
+            }
             alert("사진이 수정되었습니다.");
+            // UI 업데이트
             currentPhotoRecord.element.querySelector("img").src =
               urlData.publicUrl;
             currentPhotoRecord.element
@@ -346,11 +362,13 @@ document.addEventListener("DOMContentLoaded", function () {
               .setAttribute("data-description", newDescription);
             modalImage.src = urlData.publicUrl;
             imageDescription.textContent = newDescription;
+            currentPhotoRecord.url = urlData.publicUrl;
             optionContainer.remove();
           }
         };
       });
 
+    // 단순 소개 수정 처리
     document
       .getElementById("updateDescBtn")
       .addEventListener("click", async function () {
@@ -380,6 +398,7 @@ document.addEventListener("DOMContentLoaded", function () {
       return;
     }
     editDeleteModal.style.display = "none";
+    // DB에서 사진 레코드 삭제
     const { error } = await supabaseClient
       .from("photos")
       .delete()
@@ -388,25 +407,23 @@ document.addEventListener("DOMContentLoaded", function () {
       alert("삭제 오류: " + error.message);
       return;
     }
+    // 스토리지에서 파일 삭제
     const filePath = getFilePathFromUrl(currentPhotoRecord.url);
     if (filePath) {
-      const { error: storageError } = await supabaseClient.storage
-        .from("images")
-        .remove([filePath]);
-      if (storageError) {
-        console.error("스토리지 삭제 오류:", storageError.message);
-      }
+      await supabaseClient.storage.from("images").remove([filePath]);
     }
     alert("사진이 삭제되었습니다.");
     currentPhotoRecord.element.remove();
     imageModal.style.display = "none";
   });
 
+  // 파일 경로 추출 함수 (스토리지 삭제용)
   function getFilePathFromUrl(url) {
-    const marker = "/images/";
+    // Supabase Storage URL 형식에 맞게 조정 (예: "/uploads/..."를 추출)
+    const marker = "/uploads/";
     const index = url.indexOf(marker);
     if (index === -1) return null;
-    return url.substring(index + marker.length);
+    return url.substring(index + 1); // 앞의 '/'를 제거하여 경로 반환
   }
 
   /* ---------- 갤러리 캐러셀 로드 및 관리 ---------- */
@@ -449,6 +466,11 @@ document.addEventListener("DOMContentLoaded", function () {
         if (delError) {
           alert("삭제 중 오류가 발생했습니다: " + delError.message);
           return;
+        }
+        // 스토리지에서 추천 사진 파일 삭제
+        const filePath = getFilePathFromUrl(item.url);
+        if (filePath) {
+          await supabaseClient.storage.from("images").remove([filePath]);
         }
         alert("삭제되었습니다.");
         loadRecommendedList();
@@ -601,6 +623,11 @@ document.addEventListener("DOMContentLoaded", function () {
         if (delError) {
           alert("삭제 중 오류가 발생했습니다: " + delError.message);
           return;
+        }
+        // 스토리지에서 파일 삭제
+        const filePath = getFilePathFromUrl(item.url);
+        if (filePath) {
+          await supabaseClient.storage.from("images").remove([filePath]);
         }
         alert("삭제되었습니다.");
         loadRecommendedList();
