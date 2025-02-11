@@ -480,6 +480,7 @@ header {
   padding: 10px;
 }
 #notificationSettingsBtn {
+  display: none;
   background-color: rgba(47, 48, 55, 0.9);
   border: none;
   padding: 10px;
