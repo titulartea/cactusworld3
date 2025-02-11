@@ -13,10 +13,8 @@
         <!-- 업로드 모달 열기 -->
         <button id="uploadBtn">🌵</button>
       </div>
-      <!-- 알림 설정 버튼 -->
-      <div id="notification-container">
-        <button id="enableNotificationsBtn">🔔</button>
-      </div>
+      <!-- 알림 설정 버튼 추가 -->
+      <button id="notificationSettingsBtn">🔔</button>
     </header>
 
     <!-- 추천 사진 캐러셀 (갤러리 위) -->
@@ -107,26 +105,13 @@
       <div class="arrow right" id="nextBtn">❯</div>
     </div>
 
-    <!-- 사진 옵션 모달 (수정/삭제 전용) -->
-    <div id="editDeleteModal" class="modal" style="display: none">
-      <div
-        class="modal-content edit-delete-modal"
-        style="width: 300px; padding: 20px; text-align: center"
-      >
-        <span
-          class="close"
-          id="closeEditDeleteModal"
-          style="float: right; cursor: pointer"
-          >&times;</span
-        >
+    <!-- 사진 옵션 모달 (수정/삭제/나가기) -->
+    <div id="photoOptionsModal" class="modal" style="display: none">
+      <div class="modal-content option-modal">
         <h3>사진 옵션</h3>
-        <button id="editPhotoBtnOption">수정</button>
-        <button id="deletePhotoBtnOption">삭제</button>
-        <div id="module">
-          <button id="exitButton" class="modal-btn exit-btn">
-            나가기 없어도 됨
-          </button>
-        </div>
+        <button id="btnEditPhoto">수정</button>
+        <button id="btnDeletePhoto">삭제</button>
+        <button id="btnExitOptions" class="modal-btn exit-btn">나가기</button>
       </div>
     </div>
 

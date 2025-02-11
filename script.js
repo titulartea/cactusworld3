@@ -43,15 +43,13 @@ document.addEventListener("DOMContentLoaded", function () {
   const prevCarousel = document.getElementById("prevCarousel");
   const nextCarousel = document.getElementById("nextCarousel");
 
-  const enableNotificationsBtn = document.getElementById(
-    "enableNotificationsBtn"
+  // 새 사진 옵션 모달 관련 요소
+  const photoOptionsModal = document.getElementById("photoOptionsModal");
+  const closePhotoOptionsModal = document.getElementById(
+    "closePhotoOptionsModal"
   );
 
-  // 사진 옵션 모달 관련
-  const editDeleteModal = document.getElementById("editDeleteModal");
-  const editPhotoBtnOption = document.getElementById("editPhotoBtnOption");
-  const deletePhotoBtnOption = document.getElementById("deletePhotoBtnOption");
-
+  // 수정 시 파일 변경용 숨김 파일 입력
   const editFileInput = document.getElementById("editFileInput");
 
   // 확대/축소 관련
@@ -74,48 +72,6 @@ document.addEventListener("DOMContentLoaded", function () {
   let carouselSlides = [];
   let carouselTimer = null;
   const carouselInterval = 2500;
-
-  // 알림 구독 플래그
-  let notificationsSubscribed = false;
-
-  /* ---------- 알림 설정 및 구독 ---------- */
-  enableNotificationsBtn.addEventListener("click", function () {
-    if ("Notification" in window) {
-      Notification.requestPermission().then((permission) => {
-        if (permission === "granted") {
-          localStorage.setItem("notificationsEnabled", "true");
-          alert("알림이 활성화되었습니다.");
-          subscribeToPhotoNotifications();
-        } else {
-          alert("알림 권한이 거부되었습니다.");
-        }
-      });
-    } else {
-      alert("이 브라우저는 알림을 지원하지 않습니다.");
-    }
-  });
-
-  function subscribeToPhotoNotifications() {
-    if (notificationsSubscribed) return;
-    supabaseClient
-      .from("photos")
-      .on("INSERT", (payload) => {
-        const photo = payload.new;
-        new Notification("새로운 사진이 등록되었습니다!", {
-          body: photo.description || "새 사진을 확인해 보세요!",
-          icon: photo.url,
-        });
-      })
-      .subscribe();
-    notificationsSubscribed = true;
-  }
-
-  if (
-    localStorage.getItem("notificationsEnabled") === "true" &&
-    Notification.permission === "granted"
-  ) {
-    subscribeToPhotoNotifications();
-  }
 
   /* ---------- 모달 및 탭 전환 ---------- */
   uploadBtn.addEventListener("click", function () {
@@ -150,7 +106,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  /* ---------- 갤러리 업로드 (개선된 코드) ---------- */
+  /* ---------- 갤러리 업로드 ---------- */
   submitBtn.addEventListener("click", async function () {
     const password = passwordInput.value;
     const description = descriptionInput.value.trim();
@@ -318,7 +274,7 @@ document.addEventListener("DOMContentLoaded", function () {
     openImageModal(currentIndex, true);
   });
 
-  /* ---------- 터치 이벤트: 슬라이드와 핀치 제스처 구분 ---------- */
+  /* ---------- 터치 이벤트: 슬라이드와 핀치 구분 ---------- */
   imageModal.addEventListener("touchstart", function (e) {
     if (e.touches.length === 2) {
       modalInitialDistance = Math.hypot(
@@ -365,127 +321,115 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 
-  /* ---------- 옵션 버튼을 통한 사진 옵션 모달 열기 ---------- */
+  /* ---------- 사진 옵션 모달 동작 (새 코드) ---------- */
+  // 옵션 모달 열기: 이미지 모달 내 옵션 버튼 클릭 시
   openOptionBtn.addEventListener("click", function () {
-    editDeleteModal.style.display = "flex";
+    photoOptionsModal.style.display = "flex";
   });
 
-  /* ---------- 수정 기능 (옵션 모달 내 수정 버튼) ---------- */
-  editPhotoBtnOption.addEventListener("click", function () {
+  // 옵션 모달 닫기: 닫기 아이콘(이미지 모달 내)이 있으면 자동으로 처리되고,
+  // 새로 추가한 "나가기" 버튼으로도 모달 닫기 기능을 구현
+  const btnExitOptions = document.getElementById("btnExitOptions");
+  btnExitOptions.addEventListener("click", function () {
+    photoOptionsModal.style.display = "none";
+  });
+
+  // 수정 버튼 처리
+  const btnEditPhoto = document.getElementById("btnEditPhoto");
+  btnEditPhoto.addEventListener("click", async function () {
     const pwd = prompt("수정을 위해 비밀번호를 입력하세요");
     if (pwd !== "firmament") {
       alert("비밀번호가 틀렸습니다!");
       return;
     }
-    editDeleteModal.style.display = "none";
-    const newDescription = prompt(
-      "새로운 사진 소개를 입력하세요",
-      currentPhotoRecord.description
+    let modType = prompt(
+      "어떤 수정을 원하시나요? 1) 사진 파일 변경 2) 설명 수정 (1 또는 2 입력)"
     );
-    if (newDescription === null) return;
-    showEditOptions(newDescription);
+    if (modType === "1") {
+      editFileInput.click();
+      editFileInput.onchange = async function (event) {
+        if (event.target.files.length > 0) {
+          const file = event.target.files[0];
+          const filePath = `uploads/${Date.now()}_${file.name}`;
+          const oldUrl = currentPhotoRecord.url;
+          const { error } = await supabaseClient.storage
+            .from("images")
+            .upload(filePath, file);
+          if (error) {
+            alert("업로드 중 오류: " + error.message);
+            return;
+          }
+          const { data: urlData, error: urlError } = supabaseClient.storage
+            .from("images")
+            .getPublicUrl(filePath);
+          if (urlError) {
+            alert("이미지 URL 가져오기 오류: " + urlError.message);
+            return;
+          }
+          let newDescription = prompt(
+            "사진 설명을 업데이트 하시겠습니까? (취소 시 기존 설명 유지)",
+            currentPhotoRecord.description
+          );
+          newDescription =
+            newDescription === null
+              ? currentPhotoRecord.description
+              : newDescription;
+          const { error: updateError } = await supabaseClient
+            .from("photos")
+            .update({ url: urlData.publicUrl, description: newDescription })
+            .eq("id", currentPhotoRecord.id);
+          if (updateError) {
+            alert("수정 오류: " + updateError.message);
+            return;
+          }
+          const oldFilePath = getFilePathFromUrl(oldUrl);
+          if (oldFilePath) {
+            await supabaseClient.storage.from("images").remove([oldFilePath]);
+          }
+          alert("사진이 수정되었습니다.");
+          currentPhotoRecord.element.querySelector("img").src =
+            urlData.publicUrl;
+          currentPhotoRecord.element
+            .querySelector("img")
+            .setAttribute("data-description", newDescription);
+          modalImage.src = urlData.publicUrl;
+          imageDescription.textContent = newDescription;
+        }
+      };
+    } else if (modType === "2") {
+      let newDescription = prompt(
+        "새로운 사진 설명을 입력하세요",
+        currentPhotoRecord.description
+      );
+      if (newDescription === null) return;
+      const { error: updateError } = await supabaseClient
+        .from("photos")
+        .update({ description: newDescription })
+        .eq("id", currentPhotoRecord.id);
+      if (updateError) {
+        alert("수정 오류: " + updateError.message);
+        return;
+      }
+      alert("사진 설명이 수정되었습니다.");
+      currentPhotoRecord.element
+        .querySelector("img")
+        .setAttribute("data-description", newDescription);
+      imageDescription.textContent = newDescription;
+    } else {
+      alert("올바른 옵션을 선택하세요.");
+    }
+    photoOptionsModal.style.display = "none";
   });
 
-  function showEditOptions(newDescription) {
-    const existingOptions = document.getElementById("editOptions");
-    if (existingOptions) existingOptions.remove();
-
-    const optionContainer = document.createElement("div");
-    optionContainer.id = "editOptions";
-    optionContainer.style.position = "absolute";
-    optionContainer.style.top = "10px";
-    optionContainer.style.right = "10px";
-    optionContainer.style.background = "rgba(0,0,0,0.7)";
-    optionContainer.style.padding = "10px";
-    optionContainer.style.borderRadius = "8px";
-    optionContainer.style.zIndex = "30";
-    optionContainer.innerHTML = `
-      <button id="changeFileBtn" class="modal-btn edit-btn" style="margin-right:10px;">사진 파일 변경</button>
-      <button id="updateDescBtn" class="modal-btn edit-btn">소개만 수정</button>
-    `;
-    imageModal.appendChild(optionContainer);
-
-    document
-      .getElementById("changeFileBtn")
-      .addEventListener("click", function () {
-        editFileInput.click();
-        editFileInput.onchange = async function (event) {
-          if (event.target.files.length > 0) {
-            const file = event.target.files[0];
-            const filePath = `uploads/${Date.now()}_${file.name}`;
-            const oldUrl = currentPhotoRecord.url;
-            const { error } = await supabaseClient.storage
-              .from("images")
-              .upload(filePath, file);
-            if (error) {
-              alert("업로드 중 오류: " + error.message);
-              optionContainer.remove();
-              return;
-            }
-            const { data: urlData, error: urlError } = supabaseClient.storage
-              .from("images")
-              .getPublicUrl(filePath);
-            if (urlError) {
-              alert("이미지 URL 가져오기 오류: " + urlError.message);
-              optionContainer.remove();
-              return;
-            }
-            const { error: updateError } = await supabaseClient
-              .from("photos")
-              .update({ url: urlData.publicUrl, description: newDescription })
-              .eq("id", currentPhotoRecord.id);
-            if (updateError) {
-              alert("수정 오류: " + updateError.message);
-              optionContainer.remove();
-              return;
-            }
-            const oldFilePath = getFilePathFromUrl(oldUrl);
-            if (oldFilePath) {
-              await supabaseClient.storage.from("images").remove([oldFilePath]);
-            }
-            alert("사진이 수정되었습니다.");
-            currentPhotoRecord.element.querySelector("img").src =
-              urlData.publicUrl;
-            currentPhotoRecord.element
-              .querySelector("img")
-              .setAttribute("data-description", newDescription);
-            modalImage.src = urlData.publicUrl;
-            imageDescription.textContent = newDescription;
-            currentPhotoRecord.url = urlData.publicUrl;
-            optionContainer.remove();
-          }
-        };
-      });
-
-    document
-      .getElementById("updateDescBtn")
-      .addEventListener("click", async function () {
-        const { error: updateError } = await supabaseClient
-          .from("photos")
-          .update({ description: newDescription })
-          .eq("id", currentPhotoRecord.id);
-        if (updateError) {
-          alert("수정 오류: " + updateError.message);
-          optionContainer.remove();
-          return;
-        }
-        alert("사진 소개가 수정되었습니다.");
-        currentPhotoRecord.element
-          .querySelector("img")
-          .setAttribute("data-description", newDescription);
-        imageDescription.textContent = newDescription;
-        optionContainer.remove();
-      });
-  }
-
-  /* ---------- 삭제 기능 (옵션 모달 내 삭제 버튼) ---------- */
-  deletePhotoBtnOption.addEventListener("click", async function () {
+  // 삭제 버튼 처리
+  const btnDeletePhoto = document.getElementById("btnDeletePhoto");
+  btnDeletePhoto.addEventListener("click", async function () {
     const pwd = prompt("삭제를 위해 비밀번호를 입력하세요");
     if (pwd !== "firmament") {
       alert("비밀번호가 틀렸습니다!");
       return;
     }
-    editDeleteModal.style.display = "none";
+    photoOptionsModal.style.display = "none";
     const { error } = await supabaseClient
       .from("photos")
       .delete()
@@ -729,3 +673,37 @@ document.addEventListener("DOMContentLoaded", function () {
     imageModal.style.display = "flex";
   }
 });
+/* ---------- [추가] 알림 설정 버튼 동작 ---------- */
+const notificationSettingsBtn = document.getElementById(
+  "notificationSettingsBtn"
+);
+
+notificationSettingsBtn.addEventListener("click", function () {
+  if (!("Notification" in window)) {
+    alert("이 브라우저는 알림 기능을 지원하지 않습니다.");
+    return;
+  }
+  Notification.requestPermission().then((permission) => {
+    if (permission === "granted") {
+      alert("알림이 활성화되었습니다.");
+      subscribeToNotifications();
+    } else {
+      alert("알림 권한이 거부되었습니다.");
+    }
+  });
+});
+
+// Supabase Realtime 구독을 별도 함수로 분리 (알림 설정 버튼 클릭 시 호출)
+function subscribeToNotifications() {
+  supabaseClient
+    .from("photos")
+    .on("INSERT", (payload) => {
+      console.log("새로운 사진 업로드:", payload);
+      const { description, url } = payload.new;
+      new Notification("새로운 사진 업로드", {
+        body: description || "새로운 사진이 업로드되었습니다!",
+        icon: url,
+      });
+    })
+    .subscribe();
+}
