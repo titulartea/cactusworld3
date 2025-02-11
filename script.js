@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", function () {
-  // Supabase 설정 (실제 URL과 KEY 사용)
+  // Supabase 설정
   const SUPABASE_URL = "https://lkddstkbnxapncvdeynf.supabase.co";
   const SUPABASE_KEY =
     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxrZGRzdGtibnhhcG5jdmRleW5mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzg2NTkwMDYsImV4cCI6MjA1NDIzNTAwNn0.dFrdDQ-E_23MBe0YQwzNvHWsoShpqJwn7l26CdcJ1xk";
@@ -43,25 +43,79 @@ document.addEventListener("DOMContentLoaded", function () {
   const prevCarousel = document.getElementById("prevCarousel");
   const nextCarousel = document.getElementById("nextCarousel");
 
-  // 사진 옵션 모달 관련 요소
-  const editDeleteModal = document.getElementById("editDeleteModal");
+  const enableNotificationsBtn = document.getElementById(
+    "enableNotificationsBtn"
+  );
 
+  // 사진 옵션 모달 관련
+  const editDeleteModal = document.getElementById("editDeleteModal");
   const editPhotoBtnOption = document.getElementById("editPhotoBtnOption");
   const deletePhotoBtnOption = document.getElementById("deletePhotoBtnOption");
 
-  // 수정 시 파일 교체를 위한 숨김 파일 입력
   const editFileInput = document.getElementById("editFileInput");
 
+  // 확대/축소 관련
+  let currentScale = 1.0;
+  const zoomInBtn = document.getElementById("zoomInBtn");
+  const zoomOutBtn = document.getElementById("zoomOutBtn");
+
+  // 터치 이벤트 관련 (슬라이드와 핀치 구분)
+  let modalTouchStartX = 0;
+  let modalInitialDistance = 0;
+  let isPinching = false;
+  let slideDisabledUntil = 0;
+
+  // 기타 변수
   let offset = 0;
   const limit = 32;
-  let currentIndex = 0; // 갤러리 모달 내 현재 이미지 인덱스
-  let currentPhotoRecord = null; // 현재 모달에서 열려있는 사진 정보 객체
-
-  // 캐러셀 관련 변수
+  let currentIndex = 0;
+  let currentPhotoRecord = null;
   let carouselIndex = 0;
   let carouselSlides = [];
   let carouselTimer = null;
   const carouselInterval = 2500;
+
+  // 알림 구독 플래그
+  let notificationsSubscribed = false;
+
+  /* ---------- 알림 설정 및 구독 ---------- */
+  enableNotificationsBtn.addEventListener("click", function () {
+    if ("Notification" in window) {
+      Notification.requestPermission().then((permission) => {
+        if (permission === "granted") {
+          localStorage.setItem("notificationsEnabled", "true");
+          alert("알림이 활성화되었습니다.");
+          subscribeToPhotoNotifications();
+        } else {
+          alert("알림 권한이 거부되었습니다.");
+        }
+      });
+    } else {
+      alert("이 브라우저는 알림을 지원하지 않습니다.");
+    }
+  });
+
+  function subscribeToPhotoNotifications() {
+    if (notificationsSubscribed) return;
+    supabaseClient
+      .from("photos")
+      .on("INSERT", (payload) => {
+        const photo = payload.new;
+        new Notification("새로운 사진이 등록되었습니다!", {
+          body: photo.description || "새 사진을 확인해 보세요!",
+          icon: photo.url,
+        });
+      })
+      .subscribe();
+    notificationsSubscribed = true;
+  }
+
+  if (
+    localStorage.getItem("notificationsEnabled") === "true" &&
+    Notification.permission === "granted"
+  ) {
+    subscribeToPhotoNotifications();
+  }
 
   /* ---------- 모달 및 탭 전환 ---------- */
   uploadBtn.addEventListener("click", function () {
@@ -110,7 +164,6 @@ document.addEventListener("DOMContentLoaded", function () {
     }
     const file = fileInput.files[0];
     const filePath = `uploads/${Date.now()}_${file.name}`;
-    // 이미지 스토리지 업로드
     const { error } = await supabaseClient.storage
       .from("images")
       .upload(filePath, file);
@@ -118,7 +171,6 @@ document.addEventListener("DOMContentLoaded", function () {
       alert("업로드 중 오류가 발생했습니다: " + error.message);
       return;
     }
-    // 공개 URL 가져오기
     const { data: urlData, error: urlError } = supabaseClient.storage
       .from("images")
       .getPublicUrl(filePath);
@@ -128,7 +180,6 @@ document.addEventListener("DOMContentLoaded", function () {
       );
       return;
     }
-    // DB에 사진 정보를 insert (실제 DB의 id를 반환받도록 함)
     const { data: insertedData, error: insertError } = await supabaseClient
       .from("photos")
       .insert([{ url: urlData.publicUrl, description }], {
@@ -142,7 +193,6 @@ document.addEventListener("DOMContentLoaded", function () {
       return;
     }
     const photoRecord = insertedData[0];
-    // 갤러리에 새 이미지 추가 (실제 DB의 id 사용)
     const galleryItem = document.createElement("div");
     galleryItem.className = "gallery-item";
     const img = document.createElement("img");
@@ -202,7 +252,6 @@ document.addEventListener("DOMContentLoaded", function () {
     );
     const targetImg = galleryItems[index];
     if (!targetImg) return;
-    // 현재 사진의 id, url, 설명, 그리고 해당 DOM 요소(갤러리 아이템) 저장
     currentPhotoRecord = {
       id: targetImg.getAttribute("data-id"),
       url: targetImg.src,
@@ -223,15 +272,16 @@ document.addEventListener("DOMContentLoaded", function () {
       modalImage.src = targetImg.src;
       imageDescription.textContent = currentPhotoRecord.description;
     }
+    // 확대/축소 초기화
+    currentScale = 1.0;
+    modalImage.style.transform = `scale(${currentScale})`;
     imageModal.style.display = "flex";
   }
 
-  // 모달 닫기 버튼
   closeImageBtn.addEventListener("click", function () {
     imageModal.style.display = "none";
   });
 
-  // 모달 바깥 영역 클릭 시 닫기
   imageModal.addEventListener("click", function (e) {
     if (e.target === imageModal) {
       imageModal.style.display = "none";
@@ -248,7 +298,6 @@ document.addEventListener("DOMContentLoaded", function () {
     openImageModal(currentIndex, true);
   });
 
-  // nextBtn 클릭 시, 마지막 사진이면 추가 사진 로드 후 다음 사진으로 이동
   nextBtn.addEventListener("click", async function (e) {
     e.stopPropagation();
     let galleryItems = Array.from(
@@ -267,6 +316,53 @@ document.addEventListener("DOMContentLoaded", function () {
       currentIndex++;
     }
     openImageModal(currentIndex, true);
+  });
+
+  /* ---------- 터치 이벤트: 슬라이드와 핀치 제스처 구분 ---------- */
+  imageModal.addEventListener("touchstart", function (e) {
+    if (e.touches.length === 2) {
+      modalInitialDistance = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+      isPinching = true;
+    } else if (e.touches.length === 1) {
+      modalTouchStartX = e.touches[0].clientX;
+      isPinching = false;
+    }
+  });
+
+  imageModal.addEventListener("touchmove", function (e) {
+    if (e.touches.length === 2) {
+      isPinching = true;
+    }
+  });
+
+  imageModal.addEventListener("touchend", function (e) {
+    if (isPinching) {
+      slideDisabledUntil = Date.now() + 1000; // 핀치 후 1초 동안 슬라이드 비활성화
+      isPinching = false;
+      return;
+    }
+    if (Date.now() < slideDisabledUntil) return;
+    let modalTouchEndX = e.changedTouches[0].clientX;
+    let diff = modalTouchStartX - modalTouchEndX;
+    if (Math.abs(diff) > 50) {
+      diff > 0 ? nextBtn.click() : prevBtn.click();
+    }
+  });
+
+  /* ---------- 확대/축소 버튼 동작 ---------- */
+  zoomInBtn.addEventListener("click", function () {
+    currentScale += 0.1;
+    modalImage.style.transform = `scale(${currentScale})`;
+  });
+
+  zoomOutBtn.addEventListener("click", function () {
+    if (currentScale > 0.3) {
+      currentScale -= 0.1;
+      modalImage.style.transform = `scale(${currentScale})`;
+    }
   });
 
   /* ---------- 옵션 버튼을 통한 사진 옵션 모달 열기 ---------- */
@@ -291,7 +387,6 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 
   function showEditOptions(newDescription) {
-    // 기존 옵션 UI 제거
     const existingOptions = document.getElementById("editOptions");
     if (existingOptions) existingOptions.remove();
 
@@ -310,7 +405,6 @@ document.addEventListener("DOMContentLoaded", function () {
     `;
     imageModal.appendChild(optionContainer);
 
-    // 사진 파일 변경 처리
     document
       .getElementById("changeFileBtn")
       .addEventListener("click", function () {
@@ -319,9 +413,7 @@ document.addEventListener("DOMContentLoaded", function () {
           if (event.target.files.length > 0) {
             const file = event.target.files[0];
             const filePath = `uploads/${Date.now()}_${file.name}`;
-            // 기존 파일 URL 저장 (이전 파일 삭제용)
             const oldUrl = currentPhotoRecord.url;
-            // 새 파일 업로드
             const { error } = await supabaseClient.storage
               .from("images")
               .upload(filePath, file);
@@ -338,7 +430,6 @@ document.addEventListener("DOMContentLoaded", function () {
               optionContainer.remove();
               return;
             }
-            // DB 업데이트: 새 URL과 수정된 소개 적용
             const { error: updateError } = await supabaseClient
               .from("photos")
               .update({ url: urlData.publicUrl, description: newDescription })
@@ -348,13 +439,11 @@ document.addEventListener("DOMContentLoaded", function () {
               optionContainer.remove();
               return;
             }
-            // 기존 스토리지 파일 삭제 (중복 파일 방지)
             const oldFilePath = getFilePathFromUrl(oldUrl);
             if (oldFilePath) {
               await supabaseClient.storage.from("images").remove([oldFilePath]);
             }
             alert("사진이 수정되었습니다.");
-            // UI 업데이트
             currentPhotoRecord.element.querySelector("img").src =
               urlData.publicUrl;
             currentPhotoRecord.element
@@ -368,7 +457,6 @@ document.addEventListener("DOMContentLoaded", function () {
         };
       });
 
-    // 단순 소개 수정 처리
     document
       .getElementById("updateDescBtn")
       .addEventListener("click", async function () {
@@ -398,7 +486,6 @@ document.addEventListener("DOMContentLoaded", function () {
       return;
     }
     editDeleteModal.style.display = "none";
-    // DB에서 사진 레코드 삭제
     const { error } = await supabaseClient
       .from("photos")
       .delete()
@@ -407,7 +494,6 @@ document.addEventListener("DOMContentLoaded", function () {
       alert("삭제 오류: " + error.message);
       return;
     }
-    // 스토리지에서 파일 삭제
     const filePath = getFilePathFromUrl(currentPhotoRecord.url);
     if (filePath) {
       await supabaseClient.storage.from("images").remove([filePath]);
@@ -417,13 +503,11 @@ document.addEventListener("DOMContentLoaded", function () {
     imageModal.style.display = "none";
   });
 
-  // 파일 경로 추출 함수 (스토리지 삭제용)
   function getFilePathFromUrl(url) {
-    // Supabase Storage URL 형식에 맞게 조정 (예: "/uploads/..."를 추출)
     const marker = "/uploads/";
     const index = url.indexOf(marker);
     if (index === -1) return null;
-    return url.substring(index + 1); // 앞의 '/'를 제거하여 경로 반환
+    return url.substring(index + 1);
   }
 
   /* ---------- 갤러리 캐러셀 로드 및 관리 ---------- */
@@ -467,7 +551,6 @@ document.addEventListener("DOMContentLoaded", function () {
           alert("삭제 중 오류가 발생했습니다: " + delError.message);
           return;
         }
-        // 스토리지에서 추천 사진 파일 삭제
         const filePath = getFilePathFromUrl(item.url);
         if (filePath) {
           await supabaseClient.storage.from("images").remove([filePath]);
@@ -519,10 +602,11 @@ document.addEventListener("DOMContentLoaded", function () {
     touchEndX = e.changedTouches[0].clientX;
     const diff = touchStartX - touchEndX;
     if (Math.abs(diff) > 50) {
-      carouselIndex =
-        diff > 0
-          ? (carouselIndex + 1) % carouselSlides.length
-          : (carouselIndex - 1 + carouselSlides.length) % carouselSlides.length;
+      diff > 0
+        ? (carouselIndex = (carouselIndex + 1) % carouselSlides.length)
+        : (carouselIndex =
+            (carouselIndex - 1 + carouselSlides.length) %
+            carouselSlides.length);
       updateCarousel();
       resetCarouselAuto();
     }
@@ -624,7 +708,6 @@ document.addEventListener("DOMContentLoaded", function () {
           alert("삭제 중 오류가 발생했습니다: " + delError.message);
           return;
         }
-        // 스토리지에서 파일 삭제
         const filePath = getFilePathFromUrl(item.url);
         if (filePath) {
           await supabaseClient.storage.from("images").remove([filePath]);
@@ -645,18 +728,4 @@ document.addEventListener("DOMContentLoaded", function () {
     imageDescription.textContent = description || "설명이 없습니다.";
     imageModal.style.display = "flex";
   }
-
-  /* ---------- 확대된 사진 모달에서 스와이프로 사진 이동 ---------- */
-  let modalTouchStartX = 0;
-  let modalTouchEndX = 0;
-  imageModal.addEventListener("touchstart", function (e) {
-    modalTouchStartX = e.touches[0].clientX;
-  });
-  imageModal.addEventListener("touchend", function (e) {
-    modalTouchEndX = e.changedTouches[0].clientX;
-    const diff = modalTouchStartX - modalTouchEndX;
-    if (Math.abs(diff) > 50) {
-      diff > 0 ? nextBtn.click() : prevBtn.click();
-    }
-  });
 });
