@@ -59,9 +59,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // 터치 이벤트 관련 (슬라이드와 핀치 구분)
   let modalTouchStartX = 0;
+  let modalTouchStartY = 0; // 추가: 터치 시작 시 y좌표 저장
   let modalInitialDistance = 0;
   let isPinching = false;
   let slideDisabledUntil = 0;
+
+  // 히스토리 관련 (뒤로가기 시 모달만 닫히도록)
+  let modalHistoryPushed = false;
 
   // 기타 변수
   let offset = 0;
@@ -72,6 +76,14 @@ document.addEventListener("DOMContentLoaded", function () {
   let carouselSlides = [];
   let carouselTimer = null;
   const carouselInterval = 2500;
+
+  /* ---------- 브라우저 뒤로가기(popstate) 이벤트 (모바일 포함) ---------- */
+  window.addEventListener("popstate", function (event) {
+    if (imageModal.style.display === "flex") {
+      imageModal.style.display = "none";
+      modalHistoryPushed = false;
+    }
+  });
 
   /* ---------- 모달 및 탭 전환 ---------- */
   uploadBtn.addEventListener("click", function () {
@@ -232,15 +244,28 @@ document.addEventListener("DOMContentLoaded", function () {
     currentScale = 1.0;
     modalImage.style.transform = `scale(${currentScale})`;
     imageModal.style.display = "flex";
+    // 모달 오픈 시 히스토리 상태 추가 (뒤로가기 눌렀을 때 모달만 닫힘)
+    if (!modalHistoryPushed) {
+      history.pushState({ modalOpen: true }, "");
+      modalHistoryPushed = true;
+    }
   }
 
   closeImageBtn.addEventListener("click", function () {
     imageModal.style.display = "none";
+    if (modalHistoryPushed) {
+      modalHistoryPushed = false;
+      history.back();
+    }
   });
 
   imageModal.addEventListener("click", function (e) {
     if (e.target === imageModal) {
       imageModal.style.display = "none";
+      if (modalHistoryPushed) {
+        modalHistoryPushed = false;
+        history.back();
+      }
     }
   });
 
@@ -274,7 +299,7 @@ document.addEventListener("DOMContentLoaded", function () {
     openImageModal(currentIndex, true);
   });
 
-  /* ---------- 터치 이벤트: 슬라이드와 핀치 구분 ---------- */
+  /* ---------- 터치 이벤트: 슬라이드/핀치 구분 및 아래로 스와이프하여 모달 닫기 ---------- */
   imageModal.addEventListener("touchstart", function (e) {
     if (e.touches.length === 2) {
       modalInitialDistance = Math.hypot(
@@ -284,6 +309,7 @@ document.addEventListener("DOMContentLoaded", function () {
       isPinching = true;
     } else if (e.touches.length === 1) {
       modalTouchStartX = e.touches[0].clientX;
+      modalTouchStartY = e.touches[0].clientY; // 터치 시작 시 y 좌표도 저장
       isPinching = false;
     }
   });
@@ -302,9 +328,23 @@ document.addEventListener("DOMContentLoaded", function () {
     }
     if (Date.now() < slideDisabledUntil) return;
     let modalTouchEndX = e.changedTouches[0].clientX;
-    let diff = modalTouchStartX - modalTouchEndX;
-    if (Math.abs(diff) > 50) {
-      diff > 0 ? nextBtn.click() : prevBtn.click();
+    let modalTouchEndY = e.changedTouches[0].clientY;
+    let diffX = modalTouchStartX - modalTouchEndX;
+    let diffY = modalTouchEndY - modalTouchStartY;
+
+    // 아래로 스와이프(수직 50px 이상, 수평 이동보다 큰 경우) 시 모달 닫기
+    if (diffY > 50 && diffY > Math.abs(diffX)) {
+      imageModal.style.display = "none";
+      if (modalHistoryPushed) {
+        modalHistoryPushed = false;
+        history.back();
+      }
+      return;
+    }
+
+    // 좌우 스와이프 (50px 이상)
+    if (Math.abs(diffX) > 50) {
+      diffX > 0 ? nextBtn.click() : prevBtn.click();
     }
   });
 
@@ -321,14 +361,13 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 
-  /* ---------- 사진 옵션 모달 동작 (새 코드) ---------- */
+  /* ---------- 사진 옵션 모달 동작 ---------- */
   // 옵션 모달 열기: 이미지 모달 내 옵션 버튼 클릭 시
   openOptionBtn.addEventListener("click", function () {
     photoOptionsModal.style.display = "flex";
   });
 
-  // 옵션 모달 닫기: 닫기 아이콘(이미지 모달 내)이 있으면 자동으로 처리되고,
-  // 새로 추가한 "나가기" 버튼으로도 모달 닫기 기능을 구현
+  // 옵션 모달 닫기: "나가기" 버튼 클릭 시
   const btnExitOptions = document.getElementById("btnExitOptions");
   btnExitOptions.addEventListener("click", function () {
     photoOptionsModal.style.display = "none";
@@ -445,6 +484,10 @@ document.addEventListener("DOMContentLoaded", function () {
     alert("사진이 삭제되었습니다.");
     currentPhotoRecord.element.remove();
     imageModal.style.display = "none";
+    if (modalHistoryPushed) {
+      modalHistoryPushed = false;
+      history.back();
+    }
   });
 
   function getFilePathFromUrl(url) {
@@ -671,8 +714,13 @@ document.addEventListener("DOMContentLoaded", function () {
     modalImage.src = src;
     imageDescription.textContent = description || "설명이 없습니다.";
     imageModal.style.display = "flex";
+    if (!modalHistoryPushed) {
+      history.pushState({ modalOpen: true }, "");
+      modalHistoryPushed = true;
+    }
   }
 });
+
 /* ---------- [추가] 알림 설정 버튼 동작 ---------- */
 const notificationSettingsBtn = document.getElementById(
   "notificationSettingsBtn"
