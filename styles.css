@@ -2,7 +2,6 @@ body {
   font-family: Arial, sans-serif;
   text-align: center;
   background-color: #ffffff;
-
   margin: 0;
   padding: 0;
   -webkit-tap-highlight-color: transparent;
@@ -12,20 +11,17 @@ header {
   color: rgb(0, 0, 0);
   height: 40px;
   font-family: "Times New Roman", Times, serif;
-
   padding: 10px;
   font-size: 13px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   background-color: rgb(255, 255, 255);
-  box-shadow: 0 0 50px rgb(72, 93, 81, 0.7);
   z-index: 100;
   /* gradient */
   background: linear-gradient(
     0deg,
     rgb(122, 122, 122) 10%,
-
     rgb(255, 255, 255) 40% rgb(255, 255, 255) 40% rgb(255, 255, 255) 40%,
     rgb(255, 255, 255) 40% rgb(255, 255, 255) 40% rgb(255, 255, 255) 50%
   );
@@ -425,69 +421,7 @@ header {
   cursor: pointer;
   transition: background-color 0.3s;
 }
-/* 사진 옵션 모달 전체 영역 */
-#photoOptionsModal {
-  display: none; /* 기본 상태: 숨김 */
-  position: fixed;
-  z-index: 11;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.9);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
 
-/* 사진 옵션 모달 내부 컨텐츠 */
-#photoOptionsModal .modal-content.option-modal {
-  background-color: #ffffff;
-  padding: 20px;
-  border-radius: 8px;
-  width: 300px;
-  text-align: center;
-  position: relative;
-}
-
-/* 모달 제목 스타일 */
-#photoOptionsModal .modal-content.option-modal h3 {
-  margin-top: 0;
-  font-size: 1.5em;
-  color: #333333;
-}
-
-/* 사진 옵션 모달 버튼 공통 스타일 */
-#photoOptionsModal .modal-content.option-modal button {
-  display: block;
-  width: 100%;
-  padding: 10px;
-  margin: 10px 0;
-  font-size: 1em;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-/* 수정 버튼 스타일 */
-#photoOptionsModal .modal-content.option-modal button#btnEditPhoto {
-  background-color: #2196f3;
-  color: #ffffff;
-}
-
-/* 삭제 버튼 스타일 */
-#photoOptionsModal .modal-content.option-modal button#btnDeletePhoto {
-  background-color: #f44336;
-  color: #ffffff;
-}
-
-/* 나가기 버튼 스타일 */
-#photoOptionsModal .modal-content.option-modal button#btnExitOptions {
-  background-color: #ffffff;
-  color: #000000;
-  border: 2px solid #000000;
-}
 #header-container {
   display: flex;
   align-items: center;
@@ -561,7 +495,7 @@ header {
   width: 100%;
   height: auto;
   object-fit: contain;
-  background-color: #000; /* 혹은 다른 배경색 */
+  background-color: #000;
 }
 .header-title {
   display: flex;
