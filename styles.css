@@ -1,14 +1,15 @@
 body {
   font-family: Arial, sans-serif;
   text-align: center;
-  background-color: rgb(29, 28, 35);
+  background-color: #ffffff;
+
   margin: 0;
   padding: 0;
   -webkit-tap-highlight-color: transparent;
 }
 
 header {
-  color: rgb(228, 225, 237);
+  color: rgb(0, 0, 0);
   height: 40px;
   font-family: "Gill Sans", "Gill Sans MT", Calibri, "Trebuchet MS", sans-serif;
   padding: 10px;
@@ -16,7 +17,9 @@ header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background-color: rgb(19, 18, 27);
+  background-color: rgb(255, 255, 255);
+  box-shadow: 0 0 100px rgb(72, 93, 81);
+  z-index: 100;
 }
 
 /* 갤러리 캐러셀 컨테이너 */
@@ -30,6 +33,7 @@ header {
   overflow: hidden;
   border-radius: 8px;
   background-color: rgba(0, 0, 0, 0.2);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
 }
 
 #carousel-bg {
@@ -100,7 +104,7 @@ header {
 #gallery {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 10px;
+  gap: 15px;
   min-block-size: 500px;
   padding: 5%;
   min-width: 200px;
@@ -115,18 +119,19 @@ header {
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: 0 0 12px rgba(0, 0, 0, 0.7);
 }
 
 .gallery-item img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.3s;
+  transition: transform 0.4s;
   cursor: pointer;
 }
 
 .gallery-item img:hover {
-  transform: scale(1.03);
+  transform: scale(1.5);
 }
 
 /* 모달 공통 스타일 */
@@ -215,8 +220,8 @@ header {
   padding: 10px;
   font-size: xx-large;
   font-weight: bolder;
-  background: rgb(255, 255, 255, 0);
-  color: rgb(255, 255, 255);
+  background: rgba(153, 153, 153, 0);
+  color: rgb(110, 110, 110);
   border: none;
   border-radius: 90px;
   cursor: pointer;
@@ -499,12 +504,13 @@ header {
 /* 드롭다운 버튼 */
 .dropdown-btn {
   background-color: rgba(47, 48, 55, 0.9);
-  color: white;
+  color: rgb(139, 139, 139);
   border: none;
   padding: 10px;
   font-size: medium;
   cursor: pointer;
   border-radius: 8px;
+  background: none;
 }
 
 /* 드롭다운 메뉴 */
@@ -517,6 +523,8 @@ header {
   box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
   z-index: 100;
   border-radius: 8px;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  font-weight: bold;
 }
 
 /* 드롭다운 메뉴 링크 */
