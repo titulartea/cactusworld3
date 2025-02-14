@@ -85,6 +85,14 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 
+  const photoUploadLink = document.getElementById("photoUploadLink");
+
+  photoUploadLink.addEventListener("click", function (event) {
+    event.preventDefault(); // Prevent default link behavior
+    mainModal.style.display = "flex"; // Show the upload modal
+    activateTab("galleryTab"); // Activate the gallery upload tab
+  });
+
   /* ---------- 모달 및 탭 전환 ---------- */
   uploadBtn.addEventListener("click", function () {
     mainModal.style.display = "flex";
