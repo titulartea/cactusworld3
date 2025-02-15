@@ -227,6 +227,22 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 
   /* ---------- 갤러리 이미지 확대 및 현재 사진 정보 저장 ---------- */
+  gallery.addEventListener("click", function (e) {
+    const menuCheckbox = document.getElementById("menuCheckbox");
+    if (menuCheckbox.checked) {
+      // 메뉴가 열려 있을 때는 사진 모달이 열리지 않도록 함
+      // 메뉴를 닫기 위해 체크박스를 해제
+      menuCheckbox.checked = false;
+      return;
+    }
+    if (e.target.tagName === "IMG") {
+      const galleryItems = Array.from(
+        gallery.querySelectorAll(".gallery-item img")
+      );
+      currentIndex = galleryItems.indexOf(e.target);
+      openImageModal(currentIndex);
+    }
+  });
 
   function openImageModal(index, animate = false) {
     const galleryItems = Array.from(
