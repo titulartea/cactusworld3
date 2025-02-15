@@ -682,3 +682,6 @@ li:hover {
 #btnExitOptions:hover {
   background-color: #0069d9; /* Darker Blue */
 }
+.advertisement {
+  color: gray;
+}
