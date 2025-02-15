@@ -388,6 +388,7 @@ header {
   background-color: rgba(0, 0, 0, 0.9);
   justify-content: center;
   align-items: center;
+  z-index: 300;
 }
 #photoOptionsModal .modal-content.option-modal {
   width: 300px;
@@ -624,4 +625,60 @@ header {
 li:hover {
   /* make background gray when hovering */
   background-color: rgba(0, 0, 0, 0.1);
+}
+/* Photo Options Modal Styles */
+#photoOptionsModal .modal-content.option-modal {
+  width: 300px;
+  padding: 20px;
+  text-align: center;
+  position: relative;
+  background-color: #fefefe;
+  border-radius: 8px;
+}
+
+/* Edit Button - Green */
+#btnEditPhoto {
+  background-color: #28a745; /* Green */
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  cursor: pointer;
+  border-radius: 4px;
+  margin-bottom: 10px;
+  transition: background-color 0.3s;
+}
+
+#btnEditPhoto:hover {
+  background-color: #218838; /* Darker Green */
+}
+
+/* Delete Button - Red */
+#btnDeletePhoto {
+  background-color: #dc3545; /* Red */
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  cursor: pointer;
+  border-radius: 4px;
+  margin-bottom: 10px;
+  transition: background-color 0.3s;
+}
+
+#btnDeletePhoto:hover {
+  background-color: #c82333; /* Darker Red */
+}
+
+/* Exit Button - Blue */
+#btnExitOptions {
+  background-color: #007bff; /* Blue */
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.3s;
+}
+
+#btnExitOptions:hover {
+  background-color: #0069d9; /* Darker Blue */
 }
