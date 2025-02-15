@@ -211,16 +211,22 @@ document.addEventListener("DOMContentLoaded", function () {
   loadMoreBtn.addEventListener("click", loadGallery);
   loadGallery();
 
-  /* ---------- 갤러리 이미지 확대 및 현재 사진 정보 저장 ---------- */
-  gallery.addEventListener("click", function (e) {
-    if (e.target.tagName === "IMG") {
-      const galleryItems = Array.from(
-        gallery.querySelectorAll(".gallery-item img")
-      );
-      currentIndex = galleryItems.indexOf(e.target);
-      openImageModal(currentIndex);
+  document.addEventListener("click", function (event) {
+    const menuCheckbox = document.getElementById("menuCheckbox");
+    const menu = document.getElementById("menu");
+    const menuToggle = document.getElementById("menuToggle");
+
+    // 메뉴가 열려 있고, 클릭한 요소가 메뉴나 메뉴 토글이 아닐 경우
+    if (
+      menuCheckbox.checked &&
+      !menu.contains(event.target) &&
+      !menuToggle.contains(event.target)
+    ) {
+      menuCheckbox.checked = false; // 메뉴 닫기
     }
   });
+
+  /* ---------- 갤러리 이미지 확대 및 현재 사진 정보 저장 ---------- */
 
   function openImageModal(index, animate = false) {
     const galleryItems = Array.from(
@@ -763,8 +769,7 @@ function subscribeToNotifications() {
     })
     .subscribe();
 }
-document
-  .getElementById("photoUploadLink")
-  .addEventListener("click", function () {
-    document.getElementById("menuCheckbox").checked = false;
-  });
+
+// 메뉴 바깥을 클릭했을 때 메뉴를 닫는 함수
+
+// 기존 코드...
