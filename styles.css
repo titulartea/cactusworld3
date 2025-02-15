@@ -257,11 +257,13 @@ header {
 }
 
 /* 이미지 설명 */
+/* 이미지 설명 */
 #imageDescription {
   color: white;
   text-align: center;
   margin-top: 20px;
   font-size: 16px;
+  white-space: pre-wrap;
 }
 
 /* 업로드 버튼 및 입력폼 스타일 */
@@ -362,35 +364,6 @@ header {
   background: none;
   font-weight: 900;
   font-size: x-large;
-}
-
-/* 새 사진 옵션 모달 스타일 */
-#photoOptionsModal {
-  display: none;
-  position: fixed;
-  z-index: 11;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.9);
-  justify-content: center;
-  align-items: center;
-}
-#photoOptionsModal .modal-content.option-modal {
-  width: 300px;
-  padding: 20px;
-  text-align: center;
-  position: relative;
-}
-#photoOptionsModal .modal-btn.exit-btn {
-  margin-top: 15px;
-  background-color: #ffffff;
-  color: black;
-  border: 2px solid #000;
-  padding: 10px 20px;
-  cursor: pointer;
-  border-radius: 4px;
 }
 
 /* 추가: 이미지 컨테이너 및 확대/축소 컨트롤 */
@@ -503,4 +476,65 @@ header {
 .link {
   color: #3498db !important;
   text-decoration: none;
+}
+/* 사진 옵션 모달 스타일 */
+#photoOptionsModal {
+  display: none; /* 기본적으로 숨김 */
+  position: fixed;
+  z-index: 20;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.8); /* 반투명 배경 */
+  justify-content: center;
+  align-items: center;
+}
+
+.option-modal {
+  display: flex;
+  flex-direction: column;
+  background-color: #ffffff;
+  padding: 20px;
+  border-radius: 8px;
+  width: 300px;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  text-align: center;
+}
+
+.option-modal h3 {
+  margin-bottom: 20px;
+  font-size: 18px;
+  color: #333;
+}
+
+.option-modal button {
+  margin: 10px 0;
+  padding: 10px 20px;
+  background-color: #3498db;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.option-modal button:hover {
+  background-color: #2980b9;
+}
+
+.exit-btn {
+  background-color: #e74c3c;
+}
+
+.exit-btn:hover {
+  background-color: #c0392b;
+}
+#btnEditPhoto {
+  background-color: #28c22a;
+}
+#btnDeletePhoto {
+  background-color: #e74c3c;
 }
