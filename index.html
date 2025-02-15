@@ -5,6 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Cactus World</title>
     <link rel="stylesheet" href="styles.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&family=Gowun+Batang&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&family=Gowun+Batang&family=Noto+Serif+KR:wght@200..900&display=swap"
+      rel="stylesheet"
+    />
   </head>
   <body>
     <header>
@@ -16,18 +28,25 @@
       <div class="header-buttons">
         <!-- 알림 설정 버튼 추가 -->
         <button id="notificationSettingsBtn">🔔</button>
-        <div class="dropdown">
-          <button class="dropdown-btn">more</button>
-          <div class="dropdown-content">
-            <a class="link" href="https://trashbin.netlify.app/"
-              >버려진 뒷고기들</a
-            >
-            <a class="link" href="https://thesecondgallery.netlify.app/" t
-              >박은찬 사이트</a
-            >
-            <a href="#" id="photoUploadLink">사진 업로드</a>
+        <nav role="navigation">
+          <div id="menuToggle">
+            <input type="checkbox" id="menuCheckbox" />
+            <span></span>
+            <span></span>
+            <span></span>
+            <ul id="menu">
+              <li>
+                <a href="https://trashbin.netlify.app/">버려진 뒷고기들</a>
+              </li>
+              <li>
+                <a href="https://thesecondgallery.netlify.app/"
+                  >박은찬 사이트</a
+                >
+              </li>
+              <li><a href="#" id="photoUploadLink">사진 업로드</a></li>
+            </ul>
           </div>
-        </div>
+        </nav>
       </div>
     </header>
     <div id="bg"></div>

@@ -763,3 +763,8 @@ function subscribeToNotifications() {
     })
     .subscribe();
 }
+document
+  .getElementById("photoUploadLink")
+  .addEventListener("click", function () {
+    document.getElementById("menuCheckbox").checked = false;
+  });
