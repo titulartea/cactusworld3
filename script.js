@@ -1,8 +1,8 @@
 document.addEventListener("DOMContentLoaded", function () {
   // Supabase 설정
-  const SUPABASE_URL = "https://lkddstkbnxapncvdeynf.supabase.co";
+  const SUPABASE_URL = "https://zafxsqbfinfqvoupafrb.supabase.co";
   const SUPABASE_KEY =
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxrZGRzdGtibnhhcG5jdmRleW5mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzg2NTkwMDYsImV4cCI6MjA1NDIzNTAwNn0.dFrdDQ-E_23MBe0YQwzNvHWsoShpqJwn7l26CdcJ1xk";
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InphZnhzcWJmaW5mcXZvdXBhZnJiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzk4ODY4NDUsImV4cCI6MjA1NTQ2Mjg0NX0.jwKCI7hUOtDqZ6iFAn1XxdAX_KXWtoMmHQByOcDF5eI";
   const { createClient } = supabase;
   const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
 
