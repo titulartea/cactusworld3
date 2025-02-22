@@ -111,6 +111,12 @@ header {
   height: 100%;
   opacity: 0;
 }
+#nextBtn {
+  opacity: 0;
+}
+#prevBtn {
+  opacity: 0;
+}
 
 /* 갤러리 Grid 레이아웃 */
 #gallery {
@@ -684,4 +690,64 @@ li:hover {
 }
 .advertisement {
   color: gray;
+}
+/* 이미지 슬라이드 애니메이션 */
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideOutRight {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+@keyframes slideOutLeft {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+}
+
+.slide-next {
+  animation: slideInRight 0.3s ease-out forwards;
+}
+
+.slide-prev {
+  animation: slideInLeft 0.3s ease-out forwards;
+}
+
+.slide-out-next {
+  animation: slideOutRight 0.3s ease-out forwards;
+}
+
+.slide-out-prev {
+  animation: slideOutLeft 0.3s ease-out forwards;
 }
