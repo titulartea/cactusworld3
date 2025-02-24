@@ -528,6 +528,13 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   /* ---------- 갤러리 캐러셀 로드 및 관리 ---------- */
+  function shuffle(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+  }
+  
   async function loadRecommended() {
     const { data, error } = await supabaseClient
       .from("recommended")
@@ -578,13 +585,20 @@ document.addEventListener("DOMContentLoaded", function () {
       });
       slide.appendChild(img);
       slide.appendChild(delBtn);
-      carousel.appendChild(slide);
       carouselSlides.push(slide);
     });
+  
+    // Shuffle the slides
+    shuffle(carouselSlides);
+  
+    // Append shuffled slides to the carousel
+    carouselSlides.forEach(slide => carousel.appendChild(slide));
+  
     carouselIndex = 0;
     updateCarousel();
     startCarouselAuto();
   }
+  
 
   function updateCarousel() {
     const offsetX = -carouselIndex * 100;
@@ -786,6 +800,4 @@ function subscribeToNotifications() {
     .subscribe();
 }
 
-// 메뉴 바깥을 클릭했을 때 메뉴를 닫는 함수
 
-// 기존 코드...
