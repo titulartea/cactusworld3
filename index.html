@@ -86,7 +86,7 @@
             id="password"
             placeholder="비밀번호를 입력하세요"
           />
-          <input type="file" id="fileInput" />
+          <input type="file" id="fileInput" multiple />
           <textarea
             id="description"
             placeholder="사진 소개를 입력하세요"
@@ -102,13 +102,13 @@
               id="recPassword"
               placeholder="비밀번호를 입력하세요"
             />
-            <input type="file" id="recFileInput" />
-            <textarea
-              id="recDescription"
-              placeholder="추천 사진 소개를 입력하세요"
-            ></textarea>
-            <button id="submitRecBtn">추천 사진 업로드</button>
+            <p class="rec-instruction">갤러리에서 추천할 사진을 선택하세요</p>
+            <div id="recPhotoGrid" class="rec-photo-grid">
+              <!-- JS에서 동적으로 생성 -->
+            </div>
+            <button id="submitRecBtn">선택한 사진 추천에 추가</button>
           </div>
+          <h3 style="margin-top: 16px; font-size: 15px; color: #555;">현재 추천 사진</h3>
           <div id="recList">
             <!-- 추천 사진 목록은 JS에서 동적으로 생성 -->
           </div>

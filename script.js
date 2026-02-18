@@ -42,10 +42,10 @@ document.addEventListener("DOMContentLoaded", function () {
   const submitBtn = document.getElementById("submitBtn");
 
   const recPasswordInput = document.getElementById("recPassword");
-  const recFileInput = document.getElementById("recFileInput");
-  const recDescriptionInput = document.getElementById("recDescription");
+  const recPhotoGrid = document.getElementById("recPhotoGrid");
   const submitRecBtn = document.getElementById("submitRecBtn");
   const recList = document.getElementById("recList");
+  let selectedRecPhotoIds = new Set();
 
   const gallery = document.getElementById("gallery");
   const loadMoreBtn = document.getElementById("loadMoreBtn");
@@ -139,6 +139,7 @@ document.addEventListener("DOMContentLoaded", function () {
     } else {
       galleryTab.style.display = "none";
       recTab.style.display = "block";
+      loadRecPhotoGrid();
       loadRecommendedList();
     }
     tabButtons.forEach((btn) => {
@@ -148,7 +149,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  /* ---------- 갤러리 업로드 ---------- */
+  /* ---------- 갤러리 업로드 (복수 파일) ---------- */
   submitBtn.addEventListener("click", async function () {
     const password = passwordInput.value;
     const description = descriptionInput.value.trim();
@@ -160,30 +161,43 @@ document.addEventListener("DOMContentLoaded", function () {
       alert("사진을 선택해주세요!");
       return;
     }
-    const file = fileInput.files[0];
-    const imageUrl = await uploadToCloudinary(file);
-    if (!imageUrl) return;
-    const { data: insertedData, error: insertError } = await supabaseClient
-      .from("photos")
-      .insert([{ url: imageUrl, description }])
-      .select();
-    if (insertError) {
-      alert(
-        "사진 정보를 저장하는 중 오류가 발생했습니다: " +
-          (insertError.message || JSON.stringify(insertError))
-      );
-      return;
+    const files = Array.from(fileInput.files);
+    submitBtn.disabled = true;
+    submitBtn.textContent = `업로드 중... (0/${files.length})`;
+    let successCount = 0;
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      submitBtn.textContent = `업로드 중... (${i + 1}/${files.length})`;
+      const imageUrl = await uploadToCloudinary(file);
+      if (!imageUrl) continue;
+      const photoDesc = files.length === 1 ? description : (description || file.name);
+      const { data: insertedData, error: insertError } = await supabaseClient
+        .from("photos")
+        .insert([{ url: imageUrl, description: photoDesc }])
+        .select();
+      if (insertError) {
+        console.error("사진 저장 오류:", insertError.message);
+        continue;
+      }
+      const photoRecord = insertedData[0];
+      const galleryItem = document.createElement("div");
+      galleryItem.className = "gallery-item";
+      const img = document.createElement("img");
+      img.src = imageUrl;
+      img.setAttribute("data-description", photoDesc);
+      img.setAttribute("data-id", photoRecord.id);
+      galleryItem.appendChild(img);
+      gallery.insertBefore(galleryItem, gallery.firstChild);
+      successCount++;
     }
-    const photoRecord = insertedData[0];
-    const galleryItem = document.createElement("div");
-    galleryItem.className = "gallery-item";
-    const img = document.createElement("img");
-    img.src = imageUrl;
-    img.setAttribute("data-description", description);
-    img.setAttribute("data-id", photoRecord.id);
-    galleryItem.appendChild(img);
-    gallery.insertBefore(galleryItem, gallery.firstChild);
-    mainModal.style.display = "none";
+    submitBtn.disabled = false;
+    submitBtn.textContent = "업로드";
+    if (successCount > 0) {
+      alert(`${successCount}개의 사진이 업로드되었습니다!`);
+      fileInput.value = "";
+      descriptionInput.value = "";
+      mainModal.style.display = "none";
+    }
   });
 
   /* ---------- 갤러리 로드 ---------- */
@@ -632,31 +646,84 @@ document.addEventListener("DOMContentLoaded", function () {
   loadRecommended();
 
   /* ---------- 추천 사진 관리 탭 ---------- */
+
+  // 갤러리에서 사진 선택 그리드 로드
+  async function loadRecPhotoGrid() {
+    const { data: allPhotos, error } = await supabaseClient
+      .from("photos")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(100);
+    if (error) {
+      console.error("사진 목록 로드 오류:", error.message);
+      return;
+    }
+    // 이미 추천된 사진 ID 가져오기
+    const { data: recData } = await supabaseClient
+      .from("recommended")
+      .select("photo_id");
+    const recPhotoIds = new Set((recData || []).map((r) => r.photo_id));
+
+    recPhotoGrid.innerHTML = "";
+    selectedRecPhotoIds.clear();
+    allPhotos.forEach((photo) => {
+      const item = document.createElement("div");
+      item.className = "rec-grid-item";
+      if (recPhotoIds.has(photo.id)) {
+        item.classList.add("already-recommended");
+      }
+      const img = document.createElement("img");
+      img.src = photo.url;
+      img.alt = photo.description || "";
+      item.appendChild(img);
+      item.addEventListener("click", function () {
+        if (recPhotoIds.has(photo.id)) return; // 이미 추천된 사진은 선택 불가
+        if (selectedRecPhotoIds.has(photo.id)) {
+          selectedRecPhotoIds.delete(photo.id);
+          item.classList.remove("selected");
+        } else {
+          selectedRecPhotoIds.add(photo.id);
+          item.classList.add("selected");
+        }
+      });
+      recPhotoGrid.appendChild(item);
+    });
+  }
+
   submitRecBtn.addEventListener("click", async function () {
     const password = recPasswordInput.value;
-    const description = recDescriptionInput.value.trim();
     if (password !== "firmament") {
       alert("비밀번호가 틀렸습니다!");
       return;
     }
-    if (recFileInput.files.length === 0) {
-      alert("사진을 선택해주세요!");
+    if (selectedRecPhotoIds.size === 0) {
+      alert("추천할 사진을 선택해주세요!");
       return;
     }
-    const file = recFileInput.files[0];
-    const imageUrl = await uploadToCloudinary(file);
-    if (!imageUrl) return;
+    // 선택된 사진들의 정보 가져오기
+    const { data: photos, error: fetchError } = await supabaseClient
+      .from("photos")
+      .select("*")
+      .in("id", Array.from(selectedRecPhotoIds));
+    if (fetchError) {
+      alert("사진 정보 로드 오류: " + fetchError.message);
+      return;
+    }
+    const inserts = photos.map((p) => ({
+      photo_id: p.id,
+      url: p.url,
+      description: p.description || "",
+    }));
     const { error: insertError } = await supabaseClient
       .from("recommended")
-      .insert([{ url: imageUrl, description }]);
+      .insert(inserts);
     if (insertError) {
-      alert(
-        "추천 사진 정보를 저장하는 중 오류가 발생했습니다: " +
-          (insertError.message || JSON.stringify(insertError))
-      );
+      alert("추천 사진 저장 오류: " + insertError.message);
       return;
     }
-    alert("추천 사진 업로드 성공!");
+    alert(`${inserts.length}개의 사진이 추천에 추가되었습니다!`);
+    selectedRecPhotoIds.clear();
+    loadRecPhotoGrid();
     loadRecommendedList();
     loadRecommended();
   });
