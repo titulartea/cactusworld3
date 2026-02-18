@@ -165,9 +165,8 @@ document.addEventListener("DOMContentLoaded", function () {
     if (!imageUrl) return;
     const { data: insertedData, error: insertError } = await supabaseClient
       .from("photos")
-      .insert([{ url: imageUrl, description }], {
-        returning: "representation",
-      });
+      .insert([{ url: imageUrl, description }])
+      .select();
     if (insertError) {
       alert(
         "사진 정보를 저장하는 중 오류가 발생했습니다: " +
