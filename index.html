@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cactus World</title>
+    <link rel="manifest" href="manifest.json" />
+    <meta name="theme-color" content="#0d9488" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="CactusWorld" />
+    <link rel="apple-touch-icon" href="icons/icon-192.svg" />
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&family=Gowun+Batang&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&family=Gowun+Batang&family=Noto+Serif+KR:wght@200..900&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <header>
+      <div class="header-title">
+        <h1>CACTUS WORLD</h1>
+        <button id="uploadBtn">🌵</button>
+        <!-- 업로드 모달 열기 -->
+      </div>
+      <div class="header-buttons">
+        <!-- 알림 설정 버튼 추가 -->
+        <button id="notificationSettingsBtn">🔔</button>
+        <nav role="navigation">
+          <div id="menuToggle">
+            <input type="checkbox" id="menuCheckbox" />
+            <span></span>
+            <span></span>
+            <span></span>
+            <ul id="menu">
+              <li>
+                <a href="https://trashbin.netlify.app/">버려진 뒷고기들</a>
+              </li>
+              <li>
+                <a href="https://thesecondgallery.netlify.app/"
+                  >박은찬 사이트</a
+                >
+              </li>
+              <li><a href="#" id="photoUploadLink">사진 업로드</a></li>
+            </ul>
+          </div>
+        </nav>
+      </div>
+    </header>
+    <div id="bg"></div>
+    <!-- 추천 사진 캐러셀 (갤러리 위) -->
+    <div id="carousel-container">
+      <div id="carousel-bg"></div>
+      <div id="carousel"></div>
+      <button class="carousel-arrow left" id="prevCarousel">❮</button>
+      <button class="carousel-arrow right" id="nextCarousel">❯</button>
+    </div>
+
+    <!-- 갤러리 -->
+    <div id="gallery"></div>
+    <button id="loadMoreBtn" style="display: none">더 보기</button>
+
+    <!-- 통합 업로드/관리 모달 -->
+    <div id="mainModal" class="modal">
+      <div class="modal-content upload-modal">
+        <span class="close" id="closeMainModal">&times;</span>
+        <div class="tab-buttons">
+          <button class="tab-btn active" data-tab="galleryTab">
+            갤러리 업로드
+          </button>
+          <button class="tab-btn" data-tab="recTab">추천 사진 관리</button>
+        </div>
+        <!-- 탭: 갤러리 업로드 -->
+        <div class="tab-content" id="galleryTab">
+          <h2>갤러리 업로드</h2>
+          <input
+            type="password"
+            id="password"
+            placeholder="비밀번호를 입력하세요"
+          />
+          <input type="file" id="fileInput" />
+          <textarea
+            id="description"
+            placeholder="사진 소개를 입력하세요"
+          ></textarea>
+          <button id="submitBtn">업로드</button>
+        </div>
+        <!-- 탭: 추천 사진 관리 -->
+        <div class="tab-content" id="recTab" style="display: none">
+          <h2>추천 사진 관리</h2>
+          <div class="rec-upload">
+            <input
+              type="password"
+              id="recPassword"
+              placeholder="비밀번호를 입력하세요"
+            />
+            <input type="file" id="recFileInput" />
+            <textarea
+              id="recDescription"
+              placeholder="추천 사진 소개를 입력하세요"
+            ></textarea>
+            <button id="submitRecBtn">추천 사진 업로드</button>
+          </div>
+          <div id="recList">
+            <!-- 추천 사진 목록은 JS에서 동적으로 생성 -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 이미지 확대 모달 -->
+    <div id="imageModal" class="modal">
+      <div class="modal-content image-modal">
+        <!-- 이미지 컨테이너: 이미지와 확대/축소 버튼을 함께 배치 -->
+        <div class="image-container">
+          <img id="modalImage" src="" alt="확대된 이미지" />
+          <!-- 확대/축소 버튼을 우측 상단에 오버레이 -->
+          <div id="zoomControls">
+            <button id="zoomInBtn">＋</button>
+            <button id="zoomOutBtn">－</button>
+          </div>
+        </div>
+        <!-- 이미지 설명 -->
+        <p id="imageDescription"></p>
+        <!-- 옵션 버튼 및 모달 닫기 -->
+        <button
+          id="openOptionBtn"
+          class="modal-close-btn"
+          style="margin-top: 10px"
+        >
+          :
+        </button>
+        <button id="closeImageBtn" class="modal-close-btn">⨉</button>
+      </div>
+      <div class="arrow left" id="prevBtn">❮</div>
+      <div class="arrow right" id="nextBtn">❯</div>
+    </div>
+
+    <!-- 사진 옵션 모달 (수정/삭제/나가기) -->
+    <div id="photoOptionsModal" class="modal" style="display: none">
+      <div class="modal-content option-modal">
+        <h3>사진 옵션</h3>
+        <button id="btnEditPhoto">수정</button>
+        <button id="btnDeletePhoto">삭제</button>
+        <button id="btnExitOptions" class="modal-btn exit-btn">나가기</button>
+      </div>
+    </div>
+    <p class="advertisement">Designed by Han jake<br />Developed by Han jake</p>
+    <!-- 수정 시 파일 교체를 위한 숨김 파일 입력 -->
+    <input type="file" id="editFileInput" style="display: none" />
+
+    <!-- Supabase 라이브러리 및 스크립트 -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <script src="script.js"></script>
+    <script>
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.register("/sw.js");
+      }
+    </script>
+  </body>
+</html>
