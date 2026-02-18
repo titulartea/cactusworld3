@@ -8,7 +8,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // Cloudinary 설정 (외부 이미지 호스팅)
   const CLOUDINARY_CLOUD_NAME = "db9m1mtns";
-  const CLOUDINARY_UPLOAD_PRESET = "ml_default";
+  const CLOUDINARY_UPLOAD_PRESET = "cactus";
 
   async function uploadToCloudinary(file) {
     const formData = new FormData();
