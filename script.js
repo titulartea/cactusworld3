@@ -530,7 +530,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const { data, error } = await supabaseClient
       .from("recommended")
       .select("*")
-      .order("created_at", { ascending: false });
+      .order("sort_order", { ascending: true });
     if (error) {
       console.error("추천 사진 로드 오류:", error.message);
       return;
@@ -575,10 +575,7 @@ document.addEventListener("DOMContentLoaded", function () {
       carouselSlides.push(slide);
     });
   
-    // Shuffle the slides
-    shuffle(carouselSlides);
-  
-    // Append shuffled slides to the carousel
+    // Append slides to the carousel (sort_order 순서대로)
     carouselSlides.forEach(slide => carousel.appendChild(slide));
   
     carouselIndex = 0;
@@ -709,10 +706,18 @@ document.addEventListener("DOMContentLoaded", function () {
       alert("사진 정보 로드 오류: " + fetchError.message);
       return;
     }
-    const inserts = photos.map((p) => ({
+    // 현재 최대 sort_order 가져오기
+    const { data: maxData } = await supabaseClient
+      .from("recommended")
+      .select("sort_order")
+      .order("sort_order", { ascending: false })
+      .limit(1);
+    const maxSortOrder = maxData && maxData.length > 0 ? (maxData[0].sort_order || 0) : 0;
+    const inserts = photos.map((p, i) => ({
       photo_id: p.id,
       url: p.url,
       description: p.description || "",
+      sort_order: maxSortOrder + i + 1,
     }));
     const { error: insertError } = await supabaseClient
       .from("recommended")
@@ -732,19 +737,46 @@ document.addEventListener("DOMContentLoaded", function () {
     const { data, error } = await supabaseClient
       .from("recommended")
       .select("*")
-      .order("created_at", { ascending: false });
+      .order("sort_order", { ascending: true });
     if (error) {
       console.error("추천 사진 목록 로드 오류:", error.message);
       return;
     }
     recList.innerHTML = "";
-    data.forEach((item) => {
+    data.forEach((item, idx) => {
       const recItem = document.createElement("div");
       recItem.className = "rec-item";
+      recItem.setAttribute("data-rec-id", item.id);
       const thumb = document.createElement("img");
       thumb.src = item.url;
       const info = document.createElement("span");
       info.textContent = item.description || "";
+
+      // 순서 버튼 컨테이너
+      const orderBtns = document.createElement("div");
+      orderBtns.className = "rec-order-btns";
+
+      const upBtn = document.createElement("button");
+      upBtn.className = "rec-order-btn";
+      upBtn.textContent = "▲";
+      upBtn.disabled = idx === 0;
+      upBtn.addEventListener("click", async function () {
+        const prevItem = data[idx - 1];
+        await swapOrder(item, prevItem);
+      });
+
+      const downBtn = document.createElement("button");
+      downBtn.className = "rec-order-btn";
+      downBtn.textContent = "▼";
+      downBtn.disabled = idx === data.length - 1;
+      downBtn.addEventListener("click", async function () {
+        const nextItem = data[idx + 1];
+        await swapOrder(item, nextItem);
+      });
+
+      orderBtns.appendChild(upBtn);
+      orderBtns.appendChild(downBtn);
+
       const delBtn = document.createElement("button");
       delBtn.className = "rec-delete";
       delBtn.textContent = "삭제";
@@ -770,9 +802,29 @@ document.addEventListener("DOMContentLoaded", function () {
       });
       recItem.appendChild(thumb);
       recItem.appendChild(info);
+      recItem.appendChild(orderBtns);
       recItem.appendChild(delBtn);
       recList.appendChild(recItem);
     });
+  }
+
+  async function swapOrder(itemA, itemB) {
+    const orderA = itemA.sort_order;
+    const orderB = itemB.sort_order;
+    const { error: e1 } = await supabaseClient
+      .from("recommended")
+      .update({ sort_order: orderB })
+      .eq("id", itemA.id);
+    const { error: e2 } = await supabaseClient
+      .from("recommended")
+      .update({ sort_order: orderA })
+      .eq("id", itemB.id);
+    if (e1 || e2) {
+      alert("순서 변경 오류");
+      return;
+    }
+    loadRecommendedList();
+    loadRecommended();
   }
 
   function openRecommendedModal(src, description) {
