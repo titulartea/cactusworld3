@@ -76,6 +76,7 @@
           <button class="tab-btn active" data-tab="galleryTab">
             갤러리 업로드
           </button>
+          <button class="tab-btn" data-tab="orderTab">갤러리 순서</button>
           <button class="tab-btn" data-tab="recTab">추천 사진 관리</button>
         </div>
         <!-- 탭: 갤러리 업로드 -->
@@ -92,6 +93,18 @@
             placeholder="사진 소개를 입력하세요"
           ></textarea>
           <button id="submitBtn">업로드</button>
+        </div>
+        <!-- 탭: 갤러리 순서 관리 -->
+        <div class="tab-content" id="orderTab" style="display: none">
+          <h2>갤러리 순서 관리</h2>
+          <input
+            type="password"
+            id="orderPassword"
+            placeholder="비밀번호를 입력하세요"
+          />
+          <div id="orderList">
+            <!-- JS에서 동적으로 생성 -->
+          </div>
         </div>
         <!-- 탭: 추천 사진 관리 -->
         <div class="tab-content" id="recTab" style="display: none">
@@ -153,8 +166,7 @@
         <button id="btnExitOptions" class="modal-btn exit-btn">나가기</button>
       </div>
     </div>
-    <p class="advertisement">Designed by Han jake<br />Developed by Han jake</p>
-    <!-- 수정 시 파일 교체를 위한 숨김 파일 입력 -->
+
     <input type="file" id="editFileInput" style="display: none" />
 
     <!-- Supabase 라이브러리 및 스크립트 -->

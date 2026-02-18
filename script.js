@@ -47,6 +47,10 @@ document.addEventListener("DOMContentLoaded", function () {
   const recList = document.getElementById("recList");
   let selectedRecPhotoIds = new Set();
 
+  const orderTab = document.getElementById("orderTab");
+  const orderPasswordInput = document.getElementById("orderPassword");
+  const orderList = document.getElementById("orderList");
+
   const gallery = document.getElementById("gallery");
   const loadMoreBtn = document.getElementById("loadMoreBtn");
   loadMoreBtn.innerHTML = "﹀";
@@ -133,11 +137,15 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 
   function activateTab(tabId) {
+    galleryTab.style.display = "none";
+    orderTab.style.display = "none";
+    recTab.style.display = "none";
     if (tabId === "galleryTab") {
       galleryTab.style.display = "block";
-      recTab.style.display = "none";
+    } else if (tabId === "orderTab") {
+      orderTab.style.display = "block";
+      loadGalleryOrderList();
     } else {
-      galleryTab.style.display = "none";
       recTab.style.display = "block";
       loadRecPhotoGrid();
       loadRecommendedList();
@@ -171,9 +179,16 @@ document.addEventListener("DOMContentLoaded", function () {
       const imageUrl = await uploadToCloudinary(file);
       if (!imageUrl) continue;
       const photoDesc = files.length === 1 ? description : (description || file.name);
+      // 현재 최대 sort_order 가져오기
+      const { data: maxOrdData } = await supabaseClient
+        .from("photos")
+        .select("sort_order")
+        .order("sort_order", { ascending: false })
+        .limit(1);
+      const nextSortOrder = maxOrdData && maxOrdData.length > 0 ? (maxOrdData[0].sort_order || 0) + 1 : 1;
       const { data: insertedData, error: insertError } = await supabaseClient
         .from("photos")
-        .insert([{ url: imageUrl, description: photoDesc }])
+        .insert([{ url: imageUrl, description: photoDesc, sort_order: nextSortOrder }])
         .select();
       if (insertError) {
         console.error("사진 저장 오류:", insertError.message);
@@ -205,7 +220,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const { data, error } = await supabaseClient
       .from("photos")
       .select("*")
-      .order("created_at", { ascending: false })
+      .order("sort_order", { ascending: true })
       .range(offset, offset + limit - 1);
     if (error) {
       console.error("갤러리 로드 오류:", error.message);
@@ -641,6 +656,85 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   loadRecommended();
+
+  /* ---------- 갤러리 순서 관리 ---------- */
+  async function loadGalleryOrderList() {
+    const pwd = orderPasswordInput.value;
+    if (pwd !== "firmament") {
+      orderList.innerHTML = '<p style="color:#999;text-align:center;padding:16px 0;">비밀번호를 입력하면 순서를 관리할 수 있습니다.</p>';
+      orderPasswordInput.oninput = function () {
+        if (orderPasswordInput.value === "firmament") loadGalleryOrderList();
+      };
+      return;
+    }
+    const { data, error } = await supabaseClient
+      .from("photos")
+      .select("*")
+      .order("sort_order", { ascending: true });
+    if (error) {
+      console.error("순서 관리 로드 오류:", error.message);
+      return;
+    }
+    orderList.innerHTML = "";
+    data.forEach((item, idx) => {
+      const row = document.createElement("div");
+      row.className = "order-item";
+
+      const thumb = document.createElement("img");
+      thumb.src = item.url;
+
+      const info = document.createElement("span");
+      info.textContent = item.description || "(설명 없음)";
+
+      const btns = document.createElement("div");
+      btns.className = "order-btns";
+
+      const upBtn = document.createElement("button");
+      upBtn.className = "order-btn";
+      upBtn.textContent = "▲";
+      upBtn.disabled = idx === 0;
+      upBtn.addEventListener("click", async function () {
+        await swapGalleryOrder(item, data[idx - 1]);
+      });
+
+      const downBtn = document.createElement("button");
+      downBtn.className = "order-btn";
+      downBtn.textContent = "▼";
+      downBtn.disabled = idx === data.length - 1;
+      downBtn.addEventListener("click", async function () {
+        await swapGalleryOrder(item, data[idx + 1]);
+      });
+
+      btns.appendChild(upBtn);
+      btns.appendChild(downBtn);
+
+      row.appendChild(thumb);
+      row.appendChild(info);
+      row.appendChild(btns);
+      orderList.appendChild(row);
+    });
+  }
+
+  async function swapGalleryOrder(a, b) {
+    const orderA = a.sort_order;
+    const orderB = b.sort_order;
+    const { error: e1 } = await supabaseClient
+      .from("photos")
+      .update({ sort_order: orderB })
+      .eq("id", a.id);
+    const { error: e2 } = await supabaseClient
+      .from("photos")
+      .update({ sort_order: orderA })
+      .eq("id", b.id);
+    if (e1 || e2) {
+      alert("순서 변경 오류");
+      return;
+    }
+    loadGalleryOrderList();
+    gallery.innerHTML = "";
+    offset = 0;
+    loadGallery();
+  }
 
   /* ---------- 추천 사진 관리 탭 ---------- */
 
