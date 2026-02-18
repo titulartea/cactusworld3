@@ -166,8 +166,8 @@ header {
 
 /* 업로드 모달 스타일 */
 .upload-modal {
-  background-color: #1a1a2e;
-  color: #e0e0e0;
+  background-color: #ffffff;
+  color: #333;
   padding: 28px 24px;
   border-radius: 16px;
   width: 360px;
@@ -175,8 +175,8 @@ header {
   max-height: 85vh;
   overflow-y: auto;
   position: relative;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+  border: none;
 }
 
 /* 모달 닫기 버튼 */
@@ -184,19 +184,19 @@ header {
   float: right;
   cursor: pointer;
   font-size: 24px;
-  color: #888;
+  color: #999;
   transition: color 0.2s;
   line-height: 1;
 }
 .close:hover {
-  color: #fff;
+  color: #333;
 }
 
 /* 탭 버튼 영역 */
 .tab-buttons {
   display: flex;
   margin-bottom: 20px;
-  background: rgba(255, 255, 255, 0.06);
+  background: #f3f4f6;
   border-radius: 12px;
   padding: 4px;
   gap: 4px;
@@ -219,12 +219,12 @@ header {
 .tab-btn.active {
   background: #0d9488;
   color: white;
-  box-shadow: 0 2px 8px rgba(13, 148, 136, 0.4);
+  box-shadow: 0 2px 8px rgba(13, 148, 136, 0.3);
 }
 
 .tab-btn:hover:not(.active) {
-  background: rgba(255, 255, 255, 0.08);
-  color: #ccc;
+  background: #e5e7eb;
+  color: #555;
 }
 
 /* 탭 내용 영역 */
@@ -233,7 +233,7 @@ header {
 }
 
 .tab-content h2 {
-  color: #e0e0e0;
+  color: #333;
   font-size: 18px;
   margin-bottom: 16px;
   font-family: "Gowun Batang", serif;
@@ -251,12 +251,12 @@ header {
   margin-bottom: 10px;
   padding: 8px;
   border-radius: 10px;
-  background: rgba(255, 255, 255, 0.04);
+  background: #f9fafb;
   transition: background 0.2s;
 }
 
 .rec-item:hover {
-  background: rgba(255, 255, 255, 0.08);
+  background: #f3f4f6;
 }
 
 .rec-item img {
@@ -265,7 +265,7 @@ header {
   object-fit: cover;
   border-radius: 8px;
   margin-right: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid #e5e7eb;
 }
 
 .delete-rec {
@@ -284,7 +284,7 @@ header {
 }
 
 .rec-item span {
-  color: #ccc;
+  color: #555;
   font-size: 14px;
   flex: 1;
   font-family: "Gowun Batang", serif;
@@ -368,9 +368,9 @@ header {
   padding: 12px;
   margin: 6px 0;
   border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(255, 255, 255, 0.06);
-  color: #e0e0e0;
+  border: 1px solid #e5e7eb;
+  background: #f9fafb;
+  color: #333;
   font-size: 14px;
   font-family: "Gowun Batang", serif;
   transition: border-color 0.3s, background 0.3s;
@@ -382,14 +382,14 @@ header {
 #recPassword:focus,
 #recDescription:focus {
   border-color: #0d9488;
-  background: rgba(13, 148, 136, 0.08);
+  background: #f0fdfa;
 }
 
 #password::placeholder,
 #description::placeholder,
 #recPassword::placeholder,
 #recDescription::placeholder {
-  color: #666;
+  color: #aaa;
 }
 
 #fileInput,
@@ -398,9 +398,9 @@ header {
   padding: 10px;
   width: calc(100% - 20px);
   border-radius: 10px;
-  border: 1px dashed rgba(255, 255, 255, 0.15);
-  background: rgba(255, 255, 255, 0.04);
-  color: #aaa;
+  border: 1px dashed #d1d5db;
+  background: #f9fafb;
+  color: #666;
   font-size: 13px;
   cursor: pointer;
 }
@@ -487,7 +487,7 @@ header {
   background-color: rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(8px);
   color: white;
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  border: none;
   border-radius: 90px;
   cursor: pointer;
   transition: all 0.3s;
